@@ -209,3 +209,15 @@ a:hover {
 .status-banner.status-completed { border-left: 4px solid #98c379; }
 .status-banner.status-completed .status-indicator-dot { background-color: #98c379; }
 .status-banner.status-completed .status-text { color: #98c379; }
+
+
+/* Inside your global.css */
+.panel-card {
+  background-color: var(--surface-color);
+  border: 1px solid var(--accent-sand);
+  border-radius: 6px;
+}
+.text-accent { color: var(--accent-green); }
+.text-code { font-family: monospace; color: var(--text-muted); }
+.theme-quote { border-left: 2px solid var(--accent-green); color: var(--text-muted); }
+.link-action { color: var(--accent-green); text-decoration: none; font-weight: 600; }

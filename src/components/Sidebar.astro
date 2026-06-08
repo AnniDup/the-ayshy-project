@@ -1,19 +1,66 @@
 ---
+// src/components/Sidebar.astro
+import { getCollection } from 'astro:content';
+
+const allProjects = await getCollection('projects');
+
+// Group projects by domain for the Workshop dropdown
+const workshopDomains = allProjects.reduce((acc, project) => {
+  const [domain, subProject] = project.id.split('/');
+  
+  // Skip the root folder index files and incubation items (status: 'idea')
+  if (!subProject || subProject === 'index' || subProject === 'index.md' || project.data.status === 'idea') return acc;
+  
+  if (!acc[domain]) acc[domain] = [];
+  acc[domain].push(project);
+  return acc;
+}, {} as Record<string, any[]>);
+
+Object.keys(workshopDomains).forEach(domain => {
+  workshopDomains[domain].sort((a, b) => a.data.title.localeCompare(b.data.title));
+});
 ---
+
 <aside class="sidebar">
   <div class="sidebar-header">
     <h2>The AyShy Project</h2>
   </div>
   
   <nav>
-    <a href="/">Dashboard</a>
-    <a href="/notebook">Notebook</a>
-    
-    <div class="section-divider">
-      <h3>Workshop</h3>
-      <a href="/workshop/fallout">Fallout</a>
-      <a href="/workshop/web-dev">Web Dev</a>
-    </div>
+    <!-- 1. Keeps Dashboard pointing to the home landing grid -->
+    <a href="/" class="nav-button">Landing</a>
+
+    <!-- Workshop Dropdown Layer -->
+    <details class="workshop-dropdown" open>
+      <!-- 🛠️ Redirected: Main Workshop Dashboard points to placeholder -->
+      <summary class="nav-button" onclick="window.location.href='/workshop'; return false;">Workshop</summary>
+      <div class="dropdown-content">
+        
+        {Object.entries(workshopDomains).map(([domain, projects]) => (
+          <div class="domain-level">
+            <!-- 🛠️ Redirected: Domain landing overview pages (e.g., /workshop/fallout) point to placeholder -->
+            <a href="/soon" class="domain-link">
+              {domain.replace('-', ' ')}
+            </a>
+            
+            <div class="project-level">
+              {projects.map(p => (
+                <!-- 🛠️ Redirected: Individual project files (e.g., Ember, Digital Garden) point to placeholder -->
+                <a href="/soon" class="project-link">
+                  {p.data.title}
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+
+      </div>
+    </details>
+
+    <!-- 🛠️ Redirected: Other unbuilt core dashboards redirected safely to placeholder -->
+    <a href="/incubation" class="nav-button">Incubation</a>
+    <a href="/soon" class="nav-button">Vault</a>
+    <a href="/soon" class="nav-button">Notebook</a>
   </nav>
 </aside>
 
@@ -23,9 +70,65 @@
     padding: 1.5rem;
     border-right: 1px solid var(--accent-sand);
     height: 100vh;
+    width: 260px;
   }
-  .sidebar-header { margin-bottom: 2rem; color: var(--accent-green); }
-  h3 { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; margin-top: 1.5rem; }
-  nav a { display: block; padding: 0.5rem 0; color: var(--text-main); transition: 0.2s; }
-  nav a:hover { color: var(--accent-green); padding-left: 0.5rem; }
+  .sidebar-header { 
+    margin-bottom: 2rem; 
+    color: var(--accent-green); 
+  }
+
+  nav a.nav-button,
+  nav summary.nav-button { 
+    display: block; 
+    padding: 0.5rem 0; 
+    color: var(--text-main); 
+    transition: 0.2s;
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: none;
+  }
+  nav a.nav-button:hover,
+  nav summary.nav-button:hover { 
+    color: var(--accent-green); 
+    padding-left: 0.5rem; 
+  }
+
+  .workshop-dropdown summary {
+    list-style: none;
+  }
+  .workshop-dropdown summary::-webkit-details-marker {
+    display: none;
+  }
+  
+  .dropdown-content {
+    padding-left: 1rem;
+  }
+
+  .domain-level {
+    margin-top: 0.75rem;
+  }
+  .domain-link {
+    display: block;
+    color: var(--accent-sand);
+    text-decoration: none;
+    text-transform: capitalize;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0.25rem 0;
+  }
+
+  .project-level {
+    padding-left: 1.25rem; 
+  }
+  .project-link {
+    display: block;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 0.2rem 0;
+  }
+  
+  .project-link:hover, .domain-link:hover {
+    color: var(--accent-green);
+  }
 </style>

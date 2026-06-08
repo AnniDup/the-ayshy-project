@@ -6,61 +6,212 @@ import ProjectCard from '@components/ProjectCard.astro';
 
 const allProjects = await getCollection('projects');
 
-// Group projects by their pipeline status
-const ideas = allProjects.filter(p => p.data.status === 'idea');
-const inProgress = allProjects.filter(p => p.data.status === 'in-progress');
-const completed = allProjects.filter(p => p.data.status === 'completed');
+// 1. Filter out raw ideas (which live in incubation)
+const activeProjects = allProjects.filter(p => p.data.status !== 'idea');
+
+const inProgress = activeProjects.filter(p => p.data.status === 'in-progress');
+const completed = activeProjects.filter(p => p.data.status === 'completed');
+const idea = activeProjects.filter(p => p.data.status === 'idea');
+
+// 2. Automatically harvest all unique tags across active projects for the filter bar
+const allTags = Array.from(
+  new Set(activeProjects.flatMap(p => p.data.tags || []))
+).sort();
 ---
 
 <Layout title="Project Command Center">
-  <h1>Project Pipeline ({allProjects.length} Total)</h1>
+  <h1 class="page-title">Project Horizon</h1>
 
-  <div class="pipeline-board">
-    <div class="column">
-      <h2>💡 Ideas ({ideas.length})</h2>
-      <div class="column-feed">
-        {ideas.map(p => <ProjectCard {...p.data} link={`/workshop/${p.id.replace(/\/index$/, '')}`} />)}
-      </div>
-    </div>
+  <!-- Dynamic Tag Filter Bar -->
+  <div class="filter-bar">
+    <button class="filter-btn active" data-filter="all">All Projects</button>
+    {allTags.map(tag => (
+      <button class="filter-btn" data-filter={tag}>#{tag}</button>
+    ))}
+  </div>
 
-    <div class="column">
-      <h2>🚧 In Progress ({inProgress.length})</h2>
-      <div class="column-feed">
-        {inProgress.map(p => <ProjectCard {...p.data} link={`/workshop/${p.id.replace(/\/index$/, '')}`} />)}
+  <div class="pipeline-sections">
+    <!-- Section 1: In Progress -->
+    <details class="pipeline-section" open>
+      <summary class="section-header">
+        <span class="section-title">In Progress ({inProgress.length})</span>
+        <span class="section-arrow"></span>
+      </summary>
+      <div class="section-content">
+        <div class="project-grid">
+          {inProgress.map(p => (
+            <div class="card-wrapper" data-tags={(p.data.tags || []).join(',')}>
+              <ProjectCard {...p.data} link="/soon" />
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </details>
 
-    <div class="column">
-      <h2>✅ Completed ({completed.length})</h2>
-      <div class="column-feed">
-        {completed.map(p => <ProjectCard {...p.data} link={`/workshop/${p.id.replace(/\/index$/, '')}`} />)}
+    <!-- Section 2: Completed -->
+    <details class="pipeline-section" open>
+      <summary class="section-header">
+        <span class="section-title">Completed ({completed.length})</span>
+        <span class="section-arrow"></span>
+      </summary>
+      <div class="section-content">
+        <div class="project-grid">
+          {completed.map(p => (
+            <div class="card-wrapper" data-tags={(p.data.tags || []).join(',')}>
+              <ProjectCard {...p.data} link="/soon" />
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </details>
+
+        <!-- Section 3: Ideas -->
+    <details class="pipeline-section" open>
+      <summary class="section-header">
+        <span class="section-title">Ideas ({idea.length})</span>
+        <span class="section-arrow"></span>
+      </summary>
+      <div class="section-content">
+        <div class="project-grid">
+          {idea.map(p => (
+            <div class="card-wrapper" data-tags={(p.data.tags || []).join(',')}>
+              <ProjectCard {...p.data} link="/soon" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </details>
   </div>
 </Layout>
 
+<script>
+  // Simple, vanilla JavaScript filter engine
+  const filterButtons = document.querySelectorAll('.filter-btn');
+  const cardWrappers = document.querySelectorAll('.card-wrapper');
+
+  filterButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      // Toggle button active visuals
+      filterButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const activeFilter = btn.getAttribute('data-filter');
+      if (!activeFilter) return; // Guard against null filters
+
+      cardWrappers.forEach(wrapper => {
+        const rawTags = wrapper.getAttribute('data-tags');
+        // Fix: Fallback to an empty string array if data-tags is null
+        const cardTags = rawTags ? rawTags.split(',') : [];
+        
+        if (activeFilter === 'all' || cardTags.includes(activeFilter)) {
+          (wrapper as HTMLElement).style.display = 'block';
+        } else {
+          (wrapper as HTMLElement).style.display = 'none';
+        }
+      });
+    });
+  });
+</script>
+
 <style>
-  .pipeline-board {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-    align-items: start;
-  }
-  .column {
-    background: var(--surface-light);
-    padding: 1.5rem;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-  }
-  .column h2 {
-    font-size: 1.2rem;
+  .page-title {
+    font-size: 1.8rem;
+    font-weight: 600;
     margin-bottom: 1.5rem;
-    border-bottom: 2px solid var(--accent-sand);
-    padding-bottom: 0.5rem;
+    color: var(--text-main);
   }
-  .column-feed {
+
+  /* Tag Filter Toolbar Styles */
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px dashed var(--accent-sand);
+    padding-bottom: 1.25rem;
+  }
+
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--accent-sand);
+    color: var(--text-muted);
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--surface-color);
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+  }
+
+  /* Collapsible Layout Blueprint */
+  .pipeline-sections {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
+    width: 100%;
+  }
+
+  .pipeline-section {
+    background: var(--surface-color);
+    border: 1px solid var(--accent-sand);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background-color: rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+
+  .section-header::-webkit-details-marker {
+    display: none;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  /* Clean Custom Accordion Arrow Indicator */
+  .section-arrow {
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
+    transform: rotate(45deg);
+    transition: transform 0.2s;
+  }
+
+  .pipeline-section[open] .section-arrow {
+    transform: rotate(-135deg);
+  }
+
+  .section-content {
+    padding: 1.5rem;
+    border-top: 1px solid var(--accent-sand);
+  }
+
+  /* Your grid layouts open up full-width now */
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+  }
+
+  .card-wrapper {
+    transition: opacity 0.2s ease;
   }
 </style>
