@@ -18,6 +18,7 @@ const allProjects = await getCollection('projects');
         link={`/workshop/${project.id.replace(/\/index$/, '')}`}
         image={project.data.image}
         tags={project.data.tags || []}
+        status={project.data.status}
       />
     ))}
   </div>

@@ -5,4 +5,13 @@ image: "./assets/thumbnail.jpg"
 tags: ["Astro", "Git Pages", "Online"]
 date: 2026-06-08
 view_type: "dashboard"
+status: "idea"
+isDraft: false
 ---
+
+# 🚧 Project Roadmap & Tasks
+
+- [ ] Initialize repository and asset structure
+- [ ] Draft core gameplay design mechanics
+- [ ] Set up basic UI/HUD elements
+- [ ] Public release alpha testing phase
