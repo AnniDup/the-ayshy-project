@@ -1,17 +1,36 @@
 ---
+// src/pages/index.astro
+import { getCollection } from 'astro:content';
+import ProjectCard from '@components/ProjectCard.astro';
+import Layout from '@layouts/Layout.astro';
 
+const allProjects = await getCollection('projects');
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout>
+  <h1>Dashboard</h1>
+  
+  <div class="grid">
+    {allProjects.map((project) => (
+      <ProjectCard 
+        title={project.data.title}
+        description={project.data.description}
+        link={`/workshop/${project.id.replace(/\/index$/, '')}`}
+        image={project.data.image}
+        tags={project.data.tags || []}
+      />
+    ))}
+  </div>
+</Layout>
+
+<style>
+  h1 { margin-bottom: 2rem; }
+
+  .grid {
+    display: grid;
+    /* Keeps the feed continuous regardless of how many items there are */
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem 0;
+  }
+</style>

@@ -1,0 +1,42 @@
+:root {
+  /* Foundations */
+  --bg-color: #1a1c1e;         /* Charcoal Deep */
+  --surface-color: #2d3033;    /* Soft Charcoal */
+  
+  /* Text */
+  --text-main: #e1e1e1;        /* Off-White */
+  --text-muted: #a0a1a1;       /* Muted Earth */
+  
+  /* Earthy Accents */
+  --accent-sage: #8f9e8b;
+  --accent-terra: #c47d6a;
+  --accent-sand: #d6c6b0;
+  
+  /* The "Pop" Accent */
+  --accent-turquoise: #40e0d0;
+  --accent-green: #73aa53;
+  --accent-orange: #c69a56;
+  --accent-red: #e05747;
+
+  /* Typography */
+  --font-family: 'Inter', system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: var(--font-family);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Common Element Styles */
+a {
+  color: var(--accent-green);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+a:hover {
+  opacity: 0.8;
+}

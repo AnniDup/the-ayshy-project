@@ -1,0 +1,36 @@
+---
+import { getCollection, render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  
+  return projects.map(entry => {
+    // We transform the file ID into a URL slug
+    // entry.id might be 'fallout/ember/index' -> we make it 'fallout/ember'
+    const slug = entry.id.replace(/\/index$/, '');
+    
+    return {
+      params: { slug: slug },
+      props: { entry },
+    };
+  });
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const { view_type } = entry.data;
+---
+
+<Layout>
+  <article class="content-container">
+    {/* Conditional rendering based on the view_type set in your markdown files */}
+    {view_type === 'dashboard' && <div class="dashboard-view"><Content /></div>}
+    {view_type === 'technical' && <div class="technical-view"><Content /></div>}
+    {view_type === 'glossary'  && <div class="glossary-view"><Content /></div>}
+  </article>
+</Layout>
+
+<style>
+  .content-container { max-width: 800px; margin: 0 auto; }
+</style>
