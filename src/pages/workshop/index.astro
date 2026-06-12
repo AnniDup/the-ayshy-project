@@ -3,7 +3,7 @@
 import { getCollection } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import ProjectCard from '@components/ProjectCard.astro';
-import TagFilterBar from '@components/TagFilterBar.astro';
+import FilterToolbar from '@components/FilterToolbar.astro';
 
 const allProjects = await getCollection('projects');
 
@@ -14,17 +14,19 @@ const inProgress = activeProjects.filter(p => p.data.status === 'in-progress');
 const completed = activeProjects.filter(p => p.data.status === 'completed');
 const idea = activeProjects.filter(p => p.data.status === 'idea');
 
-// 2. Automatically harvest all unique tags across active projects for the filter bar
 const allTags = Array.from(
   new Set(activeProjects.flatMap(p => p.data.tags || []))
 ).sort();
+
+const statuses = Array.from(
+  new Set(activeProjects.map(p => p.data.status).filter(Boolean))
+);
 ---
 
 <Layout title="Project Command Center">
   <h1 class="page-title">Project Horizon</h1>
 
-  <!-- Dynamic Tag Filter Bar -->
-  <TagFilterBar tags={allTags} />
+  <FilterToolbar statuses={statuses} tags={allTags} />
 
   <div class="pipeline-sections">
     <!-- Section 1: In Progress -->
