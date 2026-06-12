@@ -1,11 +1,12 @@
 ---
-title: "Frost Fever"
-description: "A mod experience based around the incredible Frost mod and all the suffering it brings."
+title: "Astro Curve"
+description: "Learning Astro through brute force and dwindling willpower."
 image: "./assets/thumbnail.jpg"
-tags: ["Modding", "Fallout 4", "Games"]
-date: 2026-06-08
+tags: ["Astro", "Git Pages", "Online"]
+domain: "Digital Stack"
+date: 2026-06-12
 view_type: "dashboard"
-status: "idea"
+status: "in-progress"
 isDraft: false
 ---
 

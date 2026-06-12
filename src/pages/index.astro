@@ -3,23 +3,34 @@
 import { getCollection } from 'astro:content';
 import ProjectCard from '@components/ProjectCard.astro';
 import Layout from '@layouts/Layout.astro';
+import FilterToolbar from '@components/FilterToolbar.astro'; // Import unified bar
 
 const allProjects = await getCollection('projects');
+
+const allTags = Array.from(
+  new Set(allProjects.flatMap(p => p.data.tags || []))
+).sort();
+
+const allStatuses = Array.from(
+  new Set(allProjects.map(p => p.data.status.toLowerCase()))
+).sort();
 ---
 
 <Layout>
   <h1>Dashboard</h1>
+
+  <FilterToolbar statuses={allStatuses} tags={allTags} />
   
   <div class="grid">
     {allProjects.map((project) => (
-      <ProjectCard 
-        title={project.data.title}
-        description={project.data.description}
-        link={`/workshop/${project.id.replace(/\/index$/, '')}`}
-        image={project.data.image}
-        tags={project.data.tags || []}
-        status={project.data.status}
-      />
+        <ProjectCard 
+          title={project.data.title}
+          description={project.data.description}
+          link={`/workshop/${project.id.replace(/\/index$/, '')}`}
+          image={project.data.image}
+          tags={project.data.tags || []}
+          status={project.data.status}
+        />
     ))}
   </div>
 </Layout>
@@ -29,8 +40,7 @@ const allProjects = await getCollection('projects');
 
   .grid {
     display: grid;
-    /* Keeps the feed continuous regardless of how many items there are */
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(400px, 450px));
     gap: 1.5rem;
     padding: 1rem 0;
   }

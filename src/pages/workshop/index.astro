@@ -3,6 +3,7 @@
 import { getCollection } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import ProjectCard from '@components/ProjectCard.astro';
+import TagFilterBar from '@components/TagFilterBar.astro';
 
 const allProjects = await getCollection('projects');
 
@@ -23,12 +24,7 @@ const allTags = Array.from(
   <h1 class="page-title">Project Horizon</h1>
 
   <!-- Dynamic Tag Filter Bar -->
-  <div class="filter-bar">
-    <button class="filter-btn active" data-filter="all">All Projects</button>
-    {allTags.map(tag => (
-      <button class="filter-btn" data-filter={tag}>#{tag}</button>
-    ))}
-  </div>
+  <TagFilterBar tags={allTags} />
 
   <div class="pipeline-sections">
     <!-- Section 1: In Progress -->

@@ -1,0 +1,132 @@
+
+---
+// src/components/FilterToolbar.astro
+interface Props {
+  statuses: string[];
+  tags: string[];
+}
+
+const { statuses, tags } = Astro.props;
+---
+
+<div class="filter-toolbar-container">
+  <div class="filter-row status-bar">
+    <span class="row-label">Status:</span>
+    <button class="status-btn active" data-status-filter="all">All</button>
+    {statuses.map((status: string) => (
+      <button class="status-btn" data-status-filter={status}>
+        {status.replace('-', ' ')}
+      </button>
+    ))}
+  </div>
+
+  <div class="filter-row tag-bar">
+    <span class="row-label">Tags:</span>
+    <button class="tag-btn active" data-tag-filter="all">All</button>
+    {tags.map((tag: string) => (
+      <button class="tag-btn" data-tag-filter={tag}>#{tag}</button>
+    ))}
+  </div>
+</div>
+
+<script>
+  // Inside an Astro <script> tag, code runs entirely in the browser.
+  // It cannot directly access "statuses" or "tags" props from above!
+  
+  const statusButtons = document.querySelectorAll('.status-btn');
+  const tagButtons = document.querySelectorAll('.tag-btn');
+  const cards = document.querySelectorAll('[data-tags]');
+
+  // Initialize browser-side state strings directly
+  let activeStatus = 'all';
+  let activeTag = 'all';
+
+  function applyFilters() {
+    cards.forEach(card => {
+      const cardStatus = card.getAttribute('data-project-status');
+      const rawTags = card.getAttribute('data-tags');
+      const cardTags = rawTags ? rawTags.split(',') : [];
+
+      const matchesStatus = (activeStatus === 'all' || cardStatus === activeStatus);
+      const matchesTag = (activeTag === 'all' || cardTags.includes(activeTag));
+
+      if (matchesStatus && matchesTag) {
+        card.classList.remove('is-hidden');
+      } else {
+        card.classList.add('is-hidden');
+      }
+    });
+  }
+
+  statusButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      statusButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeStatus = btn.getAttribute('data-status-filter') || 'all';
+      applyFilters();
+    });
+  });
+
+  tagButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tagButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeTag = btn.getAttribute('data-tag-filter') || 'all';
+      applyFilters();
+    });
+  });
+</script>
+
+<style>
+  .filter-toolbar-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px dashed var(--accent-sand);
+    padding-bottom: 1.5rem;
+  }
+
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .row-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    min-width: 60px;
+  }
+
+  .status-btn, .tag-btn {
+    background: transparent;
+    border: 1px solid var(--accent-sand);
+    color: var(--text-muted);
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .status-btn:hover, .status-btn.active {
+    background: var(--surface-color);
+    border-color: var(--accent-blue, #3b82f6);
+    color: var(--accent-blue, #3b82f6);
+  }
+
+  .tag-btn:hover, .tag-btn.active {
+    background: var(--surface-color);
+    border-color: var(--accent-green, #10b981);
+    color: var(--accent-green, #10b981);
+  }
+
+  :global(.project-card.is-hidden) {
+    display: none !important;
+  }
+</style>

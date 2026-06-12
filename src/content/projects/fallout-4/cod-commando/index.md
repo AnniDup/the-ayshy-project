@@ -2,7 +2,7 @@
 title: "COD Commando"
 description: "Transform Fallout 4 into an open world adventure based around capturing settlements and holding them against ever growing zombie hoards. Build around SKK's Commonwelath of Decay mod."
 image: "./assets/thumbnail.jpg"
-tags: ["Modding", "Fallout 4", "xEdit"]
+tags: ["Modding", "Fallout 4", "Games"]
 date: 2026-06-08
 view_type: "dashboard"
 status: "idea"
