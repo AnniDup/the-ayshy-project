@@ -1,8 +1,8 @@
 ---
 title: "Astro Curve"
-description: "Learning Astro through brute force and dwindling willpower."
+description: "Learning Astro (and also everything else) through brute force and dwindling willpower."
 image: "./assets/thumbnail.jpg"
-tags: ["Astro", "Git Pages", "Online"]
+tags: ["Astro", "Tools"]
 domain: "Digital Stack"
 date: 2026-06-12
 view_type: "dashboard"

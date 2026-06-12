@@ -1,17 +1,16 @@
 ---
-title: "Digital Garden"
-description: "Building this garden from scratch using Astro and Git Pages."
+
+title: "GitHub GitGudder"
+description: "Learning GitHub and GitHub Pages."
 image: "./assets/thumbnail.jpg"
-tags: ["Astro", "GitHub", "Online"]
+tags: ["Tool", "GitHub"]
 domain: "Digital Stack"
-date: 2026-06-08
+date: 2026-06-12
 view_type: "dashboard"
 status: "in-progress"
 isDraft: false
 ---
-
-# 🚧 Project Roadmap & Tasks
-
+# Project Roadmap & Tasks
 - [ ] Initialize repository and asset structure
 - [ ] Draft core gameplay design mechanics
 - [ ] Set up basic UI/HUD elements
