@@ -1,0 +1,137 @@
+---
+// src/pages/[collection]/[...path].astro
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  const allDocs = await getCollection('docs');
+
+  // Provide a strict, structural type configuration for the paths output array
+  const paths: Array<{
+    params: { collection: string; path: string };
+    props: { 
+      type: 'homepage' | 'document'; 
+      entry: CollectionEntry<'projects'> | CollectionEntry<'docs'>; 
+      projectKey: string; 
+      parentProject?: CollectionEntry<'projects'> 
+    };
+  }> = [];
+
+  // 1. Map the Project Hub Homepages
+  projects.forEach((project: CollectionEntry<'projects'>) => {
+    const parts = project.id.split('/');
+    const collection = parts[0];
+    const remainingPath = parts.slice(1).join('/');
+
+    paths.push({
+      params: { collection, path: remainingPath },
+      props: { 
+        type: 'homepage', 
+        entry: project, 
+        projectKey: project.id
+      }
+    });
+  });
+
+  // 2. Map the Documentation Pages
+  allDocs.forEach((doc: CollectionEntry<'docs'>) => {
+    const parts = doc.id.split('/');
+    const collection = parts[0];
+    const remainingPath = parts.slice(1).join('/');
+    const projectKey = `${parts[0]}/${parts[1]}/${parts[2]}`;
+
+    const parentProject = projects.find((p: CollectionEntry<'projects'>) => p.id === projectKey);
+
+    paths.push({
+      params: { collection, path: remainingPath },
+      props: { 
+        type: 'document', 
+        entry: doc, 
+        projectKey,
+        parentProject
+      }
+    });
+  });
+
+  return paths;
+}
+
+const { type, entry, projectKey, parentProject } = Astro.props;
+const { collection, path } = Astro.params;
+
+// 3. Gather all documentation files belonging to this project to build the sidebar
+const allDocs = await getCollection('docs');
+const sidebarDocs = allDocs
+  .filter((d: CollectionEntry<'docs'>) => d.id.startsWith(`${projectKey}/`))
+  .sort((a: CollectionEntry<'docs'>, b: CollectionEntry<'docs'>) => {
+    return (a.data.order || 99) - (b.data.order || 99);
+  });
+
+// 4. Compile the Markdown body content safely
+const { Content } = await render(entry);
+
+// Helper function to safely process sidebar items out of JSX's way
+const renderSidebarItem = (sidebarEntry: CollectionEntry<'docs'>) => {
+  const cleanSubPath = sidebarEntry.id.replace(`${projectKey}/`, '');
+  const targetUrl = `/${projectKey}/${cleanSubPath}`;
+  const isCurrentPage = path === `${projectKey.split('/').slice(1).join('/')}/${cleanSubPath}`;
+
+  return { targetUrl, isCurrentPage, title: sidebarEntry.data.title };
+};
+---
+
+<Layout>
+  <div class="split-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href={`/${collection}`}>&larr; Back to {collection}</a>
+        <h2>{type === 'homepage' ? entry.data.title : parentProject?.data.title}</h2>
+      </div>
+      <nav>
+        <ul>
+          <li>
+            <a 
+              href={`/${projectKey}`} 
+              class={type === 'homepage' ? 'active' : ''}
+            >
+              Overview Hub
+            </a>
+          </li>
+          
+          {/* FIX: Use the frontmatter helper function here to process each item safely */}
+          {sidebarDocs.map((sidebarEntry: any) => {
+            const item = renderSidebarItem(sidebarEntry);
+
+            return (
+              <li>
+                <a href={item.targetUrl} class={item.isCurrentPage ? 'active' : ''}>
+                  {item.title}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="content">
+      {type === 'homepage' && <div class="hub-indicator">Project Homepage</div>}
+      <article class="prose">
+        <Content />
+      </article>
+    </main>
+  </div>
+</Layout>
+
+<style>
+  .split-layout { display: flex; gap: 3rem; max-width: 1400px; margin: 0 auto; padding: 2rem; }
+  .sidebar { width: 260px; flex-shrink: 0; }
+  .sidebar-header { border-bottom: 1px dotted var(--accent-sand); padding-bottom: 1rem; margin-bottom: 1rem; }
+  .sidebar h2 { margin: 0.5rem 0 0 0; font-size: 1.2rem; text-transform: uppercase; }
+  .sidebar ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+  .sidebar a { text-decoration: none; color: var(--text-muted); display: block; padding: 0.2rem 0; font-size: 0.95rem; }
+  .sidebar a.active { color: var(--accent-blue, #3b82f6); font-weight: bold; }
+  .content { flex: 1; min-width: 0; }
+  .hub-indicator { display: inline-block; background: var(--surface-light, #2a2a2a); padding: 4px 8px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; border-radius: 4px; color: var(--accent-sand); margin-bottom: 1rem; }
+</style>

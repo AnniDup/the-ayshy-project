@@ -1,3 +1,12 @@
+---
+title: "4"
+order: 2
+---
+
+# 🛠️ Component Filter Toolbar
+
+This is where your actual markdown content, text, and code snippets go...
+
 # Projects Dashboard — Component & Page Documentation
 
 > **Who this is for:** This guide is written for someone with basic knowledge of HTML and a little Astro. If you're experienced, you can skim the concept boxes and go straight to the code. If you're newer to this, read everything — the "What's happening here" sections explain the *why*, not just the *what*.

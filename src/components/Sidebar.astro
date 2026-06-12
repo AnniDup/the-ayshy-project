@@ -1,11 +1,15 @@
 ---
 // src/components/Sidebar.astro
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 
 const allProjects = await getCollection('projects');
 
 // Group projects by domain for the Workshop dropdown
-const workshopDomains = allProjects.reduce((acc, project) => {
+// FIX: Explicitly type the accumulator and loop element inside the reduce signature
+const workshopDomains = allProjects.reduce((
+  acc: Record<string, CollectionEntry<'projects'>[]>, 
+  project: CollectionEntry<'projects'>
+) => {
   const [domain, subProject] = project.id.split('/');
   
   // Skip the root folder index files and incubation items (status: 'idea')
@@ -14,11 +18,16 @@ const workshopDomains = allProjects.reduce((acc, project) => {
   if (!acc[domain]) acc[domain] = [];
   acc[domain].push(project);
   return acc;
-}, {} as Record<string, any[]>);
+}, {} as Record<string, CollectionEntry<'projects'>[]>);
 
-Object.keys(workshopDomains).forEach(domain => {
-  workshopDomains[domain].sort((a, b) => a.data.title.localeCompare(b.data.title));
+// FIX: Type the sort parameters (a, b) so TypeScript knows they are Project Collection entries
+Object.keys(workshopDomains).forEach((domain: string) => {
+  workshopDomains[domain].sort((a: CollectionEntry<'projects'>, b: CollectionEntry<'projects'>) => 
+    a.data.title.localeCompare(b.data.title)
+  );
 });
+
+const domainList = Object.entries(workshopDomains) as Array<[string, CollectionEntry<'projects'>[]]>;
 ---
 
 <aside class="sidebar">
@@ -27,25 +36,21 @@ Object.keys(workshopDomains).forEach(domain => {
   </div>
   
   <nav>
-    <!-- 1. Keeps Dashboard pointing to the home landing grid -->
     <a href="/" class="nav-button">Landing</a>
 
-    <!-- Workshop Dropdown Layer -->
     <details class="workshop-dropdown" open>
-      <!-- 🛠️ Redirected: Main Workshop Dashboard points to placeholder -->
       <summary class="nav-button" onclick="window.location.href='/workshop'; return false;">Workshop</summary>
       <div class="dropdown-content">
-        
-        {Object.entries(workshopDomains).map(([domain, projects]) => (
+  
+        {/* FIX: Map over 'domainList' directly so you don't need inline type casting in the HTML */}
+        {domainList.map(([domain, projects]) => (
           <div class="domain-level">
-            <!-- 🛠️ Redirected: Domain landing overview pages (e.g., /workshop/fallout) point to placeholder -->
             <a href="/soon" class="domain-link">
               {domain.replace('-', ' ')}
             </a>
             
             <div class="project-level">
-              {projects.map(p => (
-                <!-- 🛠️ Redirected: Individual project files (e.g., Ember, Digital Garden) point to placeholder -->
+              {projects.map((p) => (
                 <a href="/soon" class="project-link">
                   {p.data.title}
                 </a>
@@ -57,7 +62,6 @@ Object.keys(workshopDomains).forEach(domain => {
       </div>
     </details>
 
-    <!-- 🛠️ Redirected: Other unbuilt core dashboards redirected safely to placeholder -->
     <a href="/incubation" class="nav-button">Incubation</a>
     <a href="/soon" class="nav-button">Vault</a>
     <a href="/soon" class="nav-button">Notebook</a>

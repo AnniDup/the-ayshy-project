@@ -1,21 +1,26 @@
-// src/content.config.ts
-import { defineCollection, z } from 'astro:content';
+import { defineCollection, z, type SchemaContext } from 'astro:content';
 import { glob } from 'astro/loaders';
 
 const projects = defineCollection({
-  loader: glob({ pattern: '**/index.md', base: "./src/content/projects" }),
-  schema: ({ image }) => z.object({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: "src/content/projects" }),
+  schema: ({ image }: SchemaContext) => z.object({
     title: z.string(),
     description: z.string(),
     image: image(), 
     tags: z.array(z.string()),
     date: z.coerce.date().optional(),
     view_type: z.enum(['dashboard', 'technical', 'glossary']).optional(),
-    // Track the project lifecycle
-    status: z.enum(['idea', 'in-progress', 'completed']),
-    // Control whether the public can see the actual content page
+    status: z.enum(['idea', 'in-progress', 'completed']), 
     isDraft: z.boolean().default(false),
   }),
 });
 
-export const collections = { projects };
+const docs = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: "src/content/docs" }),
+  schema: z.object({
+    title: z.string(),
+    order: z.number().optional(),
+  }),
+});
+
+export const collections = { projects, docs };

@@ -1,18 +1,20 @@
 ---
 // src/pages/index.astro
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import ProjectCard from '@components/ProjectCard.astro';
 import Layout from '@layouts/Layout.astro';
-import FilterToolbar from '@components/FilterToolbar.astro'; // Import unified bar
+import FilterToolbar from '@components/FilterToolbar.astro';
 
-const allProjects = await getCollection('projects');
+// Fetch the projects collection
+const allProjects = (await getCollection('projects')) as CollectionEntry<'projects'>[];
 
+// FIX for lines 11 & 15: Type 'p' so TypeScript can safely read 'p.data'
 const allTags = Array.from(
-  new Set(allProjects.flatMap(p => p.data.tags || []))
+  new Set(allProjects.flatMap((p: CollectionEntry<'projects'>) => p.data.tags || []))
 ).sort();
 
 const allStatuses = Array.from(
-  new Set(allProjects.map(p => p.data.status.toLowerCase()))
+  new Set(allProjects.map((p: CollectionEntry<'projects'>) => p.data.status.toLowerCase()))
 ).sort();
 ---
 
@@ -22,7 +24,8 @@ const allStatuses = Array.from(
   <FilterToolbar statuses={allStatuses} tags={allTags} />
   
   <div class="grid">
-    {allProjects.map((project) => (
+    {allProjects.map((project: CollectionEntry<'projects'>) => (
+        // FIX for line 25: Typing 'project' lets the compiler know every sub-property profile
         <ProjectCard 
           title={project.data.title}
           description={project.data.description}
