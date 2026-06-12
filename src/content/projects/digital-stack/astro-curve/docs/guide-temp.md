@@ -1,22 +1,3 @@
----
-title: "Astro Curve"
-description: "Learning Astro (and also everything else) through brute force and dwindling willpower."
-image: "./assets/thumbnail.jpg"
-tags: ["Astro", "Tools"]
-domain: "Digital Stack"
-date: 2026-06-12
-view_type: "dashboard"
-status: "in-progress"
-isDraft: false
----
-
-# 🚧 Project Roadmap & Tasks
-
-- [ ] Initialize repository and asset structure
-- [ ] Draft core gameplay design mechanics
-- [ ] Set up basic UI/HUD elements
-- [ ] Public release alpha testing phase
-
 # Projects Dashboard — Component & Page Documentation
 
 > **Who this is for:** This guide is written for someone with basic knowledge of HTML and a little Astro. If you're experienced, you can skim the concept boxes and go straight to the code. If you're newer to this, read everything — the "What's happening here" sections explain the *why*, not just the *what*.
