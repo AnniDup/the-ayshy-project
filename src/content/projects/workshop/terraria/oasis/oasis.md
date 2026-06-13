@@ -5,8 +5,8 @@ description: "A Terraria adventure map based on Ready Player One's OASIS. Jump i
 image: "./assets/thumbnail.jpg"
 tags: ["Games", "Terraria"]
 date: 2026-06-08
-view_type: "dashboard"
-status: "idea"
+viewType: "dashboard"
+statusProject: "idea"
 isDraft: false
 ---
 # Project Roadmap & Tasks

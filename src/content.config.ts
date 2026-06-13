@@ -9,8 +9,8 @@ const projects = defineCollection({
     image: image(), 
     tags: z.array(z.string()),
     date: z.coerce.date().optional(),
-    view_type: z.enum(['dashboard', 'technical', 'glossary']).optional(),
-    status: z.enum(['idea', 'in-progress', 'completed']), 
+    viewType: z.enum(['dashboard', 'technical', 'glossary']).optional(),
+    statusProject: z.enum(['idea', 'in-progress', 'completed']), 
     isDraft: z.boolean().default(false),
   }),
 });

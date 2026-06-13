@@ -5,8 +5,8 @@ description: "My forever-world on Terraria showcasing many builds, both my own a
 image: "./assets/thumbnail.jpg"
 tags: ["Games", "Terraria"]
 date: 2026-06-08
-view_type: "dashboard"
-status: "idea"
+viewType: "dashboard"
+statusProject: "idea"
 isDraft: false
 ---
 # Project Roadmap & Tasks

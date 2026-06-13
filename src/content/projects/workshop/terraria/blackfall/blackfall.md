@@ -5,8 +5,8 @@ description: "Terraria adventure for up to 3 players in a hectic custom seed bei
 image: "./assets/thumbnail.jpg"
 tags: ["Games", "Terraria"]
 date: 2026-06-08
-view_type: "dashboard"
-status: "idea"
+viewType: "dashboard"
+statusProject: "idea"
 isDraft: false
 ---
 # Project Roadmap & Tasks

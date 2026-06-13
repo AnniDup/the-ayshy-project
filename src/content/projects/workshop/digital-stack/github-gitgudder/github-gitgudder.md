@@ -6,8 +6,8 @@ image: "./assets/thumbnail.jpg"
 tags: ["Tool", "GitHub"]
 domain: "Digital Stack"
 date: 2026-06-12
-view_type: "dashboard"
-status: "in-progress"
+viewType: "dashboard"
+statusProject: "in-progress"
 isDraft: false
 ---
 # Project Roadmap & Tasks

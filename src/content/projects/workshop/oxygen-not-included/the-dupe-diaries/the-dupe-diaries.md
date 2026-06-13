@@ -4,8 +4,8 @@ description: "Build showcase of my colony I try to keep as small as possible. It
 image: "./assets/thumbnail.jpg"
 tags: ["Games", "ONI"]
 date: 2026-06-08
-view_type: "dashboard"
-status: "idea"
+viewType: "dashboard"
+statusProject: "idea"
 isDraft: false
 ---
 

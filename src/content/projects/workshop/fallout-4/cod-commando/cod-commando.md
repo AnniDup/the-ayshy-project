@@ -4,8 +4,8 @@ description: "Transform Fallout 4 into an open world adventure based around capt
 image: "./assets/thumbnail.jpg"
 tags: ["Modding", "Fallout 4", "Games"]
 date: 2026-06-08
-view_type: "dashboard"
-status: "idea"
+viewType: "dashboard"
+statusProject: idea
 isDraft: false
 ---
 

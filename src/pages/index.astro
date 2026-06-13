@@ -14,7 +14,7 @@ const allTags = Array.from(
 ).sort();
 
 const allStatuses = Array.from(
-  new Set(allProjects.map((p: CollectionEntry<'projects'>) => p.data.status.toLowerCase()))
+  new Set(allProjects.map((p: CollectionEntry<'projects'>) => p.data.statusProject.toLowerCase()))
 ).sort();
 ---
 
@@ -25,14 +25,14 @@ const allStatuses = Array.from(
   
   <div class="grid">
     {allProjects.map((project: CollectionEntry<'projects'>) => (
-        // FIX for line 25: Typing 'project' lets the compiler know every sub-property profile
+
         <ProjectCard 
           title={project.data.title}
           description={project.data.description}
           link={`/workshop/${project.id.replace(/\/index$/, '')}`}
           image={project.data.image}
           tags={project.data.tags || []}
-          status={project.data.status}
+          status={project.data.statusProject}
         />
     ))}
   </div>

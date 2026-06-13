@@ -4,8 +4,8 @@ description: "A mod experience based around the incredible Frost mod and all the
 image: "./assets/thumbnail.jpg"
 tags: ["Modding", "Fallout 4", "Games"]
 date: 2026-06-08
-view_type: "dashboard"
-status: "idea"
+viewType: "dashboard"
+statusProject: "idea"
 isDraft: false
 ---
 

@@ -5,8 +5,8 @@ image: "./assets/thumbnail.jpg"
 tags: ["Astro", "GitHub", "Online"]
 domain: "Digital Stack"
 date: 2026-06-08
-view_type: "dashboard"
-status: "in-progress"
+viewType: "dashboard"
+statusProject: "in-progress"
 isDraft: false
 ---
 

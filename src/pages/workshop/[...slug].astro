@@ -17,7 +17,7 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const { view_type, status } = entry.data;
+const { viewType, statusProject } = entry.data;
 ---
 
 <Layout>
@@ -28,13 +28,13 @@ const { view_type, status } = entry.data;
       <p>Project Pipeline Node: <span class="status-text">{status}</span></p>
     </div>
 
-    {/* Conditional rendering based on the view_type set in your markdown files */}
-    {view_type === 'dashboard' && <div class="dashboard-view"><Content /></div>}
-    {view_type === 'technical' && <div class="technical-view"><Content /></div>}
-    {view_type === 'glossary'  && <div class="glossary-view"><Content /></div>}
+    {/* Conditional rendering based on the viewType set in your markdown files */}
+    {viewType === 'dashboard' && <div class="dashboard-view"><Content /></div>}
+    {viewType === 'technical' && <div class="technical-view"><Content /></div>}
+    {viewType === 'glossary'  && <div class="glossary-view"><Content /></div>}
     
-    {/* Fallback layout stream for files without a view_type yet */}
-    {!view_type && <div class="standard-view"><Content /></div>}
+    {/* Fallback layout stream for files without a viewType yet */}
+    {!viewType && <div class="standard-view"><Content /></div>}
   </article>
 </Layout>
 
