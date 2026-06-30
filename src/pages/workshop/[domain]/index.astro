@@ -1,0 +1,56 @@
+---
+// src/pages/workshop/[domain]/index.astro — landing page per project domain
+import { getCollection } from 'astro:content';
+import Layout from '@layouts/Layout.astro';
+import ProjectCard from '@components/ProjectCard.astro';
+
+export async function getStaticPaths() {
+  const allProjects = await getCollection('projects');
+  const domains = new Set(allProjects.map(p => p.id.split('/')[0]));
+
+  return Array.from(domains).map(domain => ({
+    params: { domain },
+  }));
+}
+
+const { domain } = Astro.params;
+const allProjects = await getCollection('projects');
+const domainProjects = allProjects
+  .filter(p => p.id.split('/')[0] === domain)
+  .sort((a, b) => a.data.title.localeCompare(b.data.title));
+
+const displayName = (domain ?? '').replace(/-/g, ' ');
+---
+
+<Layout title={displayName} description={`Projects within ${displayName}.`}>
+  <p class="breadcrumb"><a href="/workshop">Workshop</a> / {displayName}</p>
+  <h1 class="page-title">{displayName}</h1>
+  <p class="page-sub">// {domainProjects.length} {domainProjects.length === 1 ? 'entry' : 'entries'}</p>
+
+  <div class="grid">
+    {domainProjects.map(p => (
+      <ProjectCard
+        title={p.data.title}
+        description={p.data.description}
+        link={`/workshop/${p.id.replace(/\/index$/, '')}`}
+        image={p.data.image}
+        tags={p.data.tags || []}
+        status={p.data.statusProject}
+      />
+    ))}
+  </div>
+</Layout>
+
+<style>
+  .breadcrumb { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0 0 0.75rem 0; }
+  .breadcrumb a { color: var(--text-faint); }
+  .breadcrumb a:hover { color: var(--green-bright); }
+  .page-title { font-size: 1.7rem; margin-bottom: 0.3rem; text-transform: capitalize; }
+  .page-sub { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.82rem; margin: 0 0 2rem 0; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.1rem;
+  }
+</style>
