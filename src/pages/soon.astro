@@ -1,27 +1,31 @@
 ---
 // src/pages/soon.astro
+// The site-wide placeholder page. Deliberately kept as the default landing
+// for any project or section that doesn't have content yet.
+// Do not delete this page — it is wired as the fallback for isDraft entries.
 import Layout from '@layouts/Layout.astro';
 ---
 
-<Layout>
+<Layout title="Soon" description="This section is still being assembled.">
   <div class="status-container">
     <div class="status-card">
+
       <div class="status-header">
         <span class="status-badge">Compiling workspace...</span>
         <span class="system-id">backlog_overflow.sh</span>
       </div>
-      
+
       <div class="status-body">
         <h1>Under construction</h1>
-        
+
         <p class="status-text">
-          This project currently exists as a high-priority neural impulse, a half-empty folder, 
-          and a dream. 
+          This project currently exists as a high-priority neural impulse, a half-empty folder,
+          and a dream.
         </p>
-        
+
         <p class="status-text">
-          Look, there are roughly 47 active side projects, exactly 24 hours in a day, 
-          and rumor has it there is an entire world outside with "grass" that needs touching. 
+          Look, there are roughly 47 active side projects, exactly 24 hours in a day,
+          and rumor has it there is an entire world outside with "grass" that needs touching.
           The math simply isn't mathing right now.
         </p>
 
@@ -31,9 +35,10 @@ import Layout from '@layouts/Layout.astro';
 
         <div class="navigation-box">
           <p>Execution paused. Redirect recommended:</p>
-          <a href="/" class="return-link">Return to Main Dashboard</a>
+          <a href="/" class="return-link">← Return to Main Dashboard</a>
         </div>
       </div>
+
     </div>
   </div>
 </Layout>
@@ -42,23 +47,19 @@ import Layout from '@layouts/Layout.astro';
   .status-container {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     min-height: 70vh;
     padding: 1rem;
-    box-sizing: border-box;
-    /* FIX: Ensures parent grids don't stretch the container track out of the viewport bounds */
     width: 100%;
   }
 
   .status-card {
-    /* FIX: Force block layout to guarantee max-width calculation locks at 650px maximum */
     display: block;
     width: 100%;
     max-width: 650px;
-    background-color: var(--surface-color);
-    border: 1px solid var(--accent-sand);
-    border-radius: 6px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    background: var(--bg-surface);
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
   }
 
   .status-header {
@@ -66,22 +67,21 @@ import Layout from '@layouts/Layout.astro';
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 1.5rem;
-    border-bottom: 1px solid var(--accent-sand);
-    background-color: rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid var(--hairline);
+    background: var(--bg-elevated);
   }
 
   .status-badge {
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: var(--accent-green);
-    /* FIX: Breaks inheritance loops causing text transformation bugs */
-    text-transform: none !important;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--green-bright);
+    letter-spacing: 0.04em;
   }
 
   .system-id {
-    font-family: monospace;
-    font-size: 0.8rem;
-    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-faint);
   }
 
   .status-body {
@@ -89,53 +89,52 @@ import Layout from '@layouts/Layout.astro';
   }
 
   h1 {
-    font-size: 1.8rem;
-    margin: 0 0 1.5rem 0;
-    color: var(--text-main);
+    font-family: var(--font-display);
+    font-size: 1.6rem;
     font-weight: 600;
-    letter-spacing: -0.02em;
-    /* FIX: Re-enforces normal typography case styling completely */
-    text-transform: none !important;
+    margin: 0 0 1.5rem 0;
+    color: var(--bone);
   }
 
   .status-text {
-    line-height: 1.6;
+    line-height: 1.7;
     margin-bottom: 1.2rem;
     font-size: 0.95rem;
-    color: var(--text-main);
-    text-transform: none !important;
+    color: var(--text-muted);
   }
 
   .status-quote {
     margin: 2rem 0;
-    padding: 0.75rem 1rem;
-    border-left: 2px solid var(--accent-green);
+    padding: 0.75rem 1.25rem;
+    border-left: 2px solid var(--green-mid);
     color: var(--text-muted);
     font-style: italic;
     font-size: 0.9rem;
-    background-color: rgba(0, 0, 0, 0.05);
-    text-transform: none !important;
+    background: rgba(143,191,92,0.04);
   }
 
   .navigation-box {
     margin-top: 2.5rem;
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    border-top: 1px dashed var(--accent-sand);
+    font-size: 0.88rem;
+    color: var(--text-faint);
+    border-top: 1px dashed var(--hairline);
     padding-top: 1.5rem;
   }
 
+  .navigation-box p { margin: 0 0 0.5rem 0; }
+
   .return-link {
     display: inline-block;
-    margin-top: 0.5rem;
     text-decoration: none;
+    font-family: var(--font-display);
+    font-size: 0.85rem;
     font-weight: 600;
-    color: var(--accent-green);
-    transition: transform 0.2s, color 0.2s;
+    color: var(--green-bright);
+    letter-spacing: 0.02em;
+    transition: transform 0.15s ease, opacity 0.15s ease;
   }
-  
   .return-link:hover {
-    color: var(--text-main);
-    transform: translateX(4px);
+    opacity: 0.8;
+    transform: translateX(-3px);
   }
 </style>

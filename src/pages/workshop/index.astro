@@ -1,163 +1,78 @@
 ---
-// src/pages/workshop/index.astro
+// src/pages/workshop/index.astro — the active project board
 import { getCollection } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import ProjectCard from '@components/ProjectCard.astro';
 import FilterToolbar from '@components/FilterToolbar.astro';
+import { projectLink } from '@lib/utils';
 
 const allProjects = await getCollection('projects');
 
-// 1. Filter out raw ideas (which live in incubation)
+// Ideas live in Incubation, not here.
 const activeProjects = allProjects.filter(p => p.data.status !== 'idea');
-
 const inProgress = activeProjects.filter(p => p.data.status === 'in-progress');
 const completed = activeProjects.filter(p => p.data.status === 'completed');
-const idea = activeProjects.filter(p => p.data.status === 'idea');
 
-const allTags = Array.from(
-  new Set(activeProjects.flatMap(p => p.data.tags || []))
-).sort();
+const allTags = Array.from(new Set(activeProjects.flatMap(p => p.data.tags || []))).sort();
+const statuses = Array.from(new Set(activeProjects.map(p => p.data.status).filter(Boolean)));
 
-const statuses = Array.from(
-  new Set(activeProjects.map(p => p.data.status).filter(Boolean))
-);
 ---
 
-<Layout title="Project Command Center">
+<Layout title="Workshop" description="The active project board.">
   <h1 class="page-title">Project Horizon</h1>
+  <p class="page-sub">// {activeProjects.length} active or completed entries</p>
 
   <FilterToolbar statuses={statuses} tags={allTags} />
 
   <div class="pipeline-sections">
-    <!-- Section 1: In Progress -->
     <details class="pipeline-section" open>
       <summary class="section-header">
         <span class="section-title">In Progress ({inProgress.length})</span>
         <span class="section-arrow"></span>
       </summary>
       <div class="section-content">
-        <div class="project-grid">
-          {inProgress.map(p => (
-            <div class="card-wrapper" data-tags={(p.data.tags || []).join(',')}>
-              <ProjectCard {...p.data} link="/soon" />
-            </div>
-          ))}
-        </div>
+        {inProgress.length > 0 ? (
+          <div class="project-grid">
+            {inProgress.map(p => (
+              <div class="card-wrapper" data-tags={(p.data.tags || []).join(',')}>
+                <ProjectCard {...p.data} link={projectLink(p)} />
+              </div>
+            ))}
+          </div>
+        ) : <p class="empty-state">Nothing in progress right now.</p>}
       </div>
     </details>
 
-    <!-- Section 2: Completed -->
     <details class="pipeline-section" open>
       <summary class="section-header">
         <span class="section-title">Completed ({completed.length})</span>
         <span class="section-arrow"></span>
       </summary>
       <div class="section-content">
-        <div class="project-grid">
-          {completed.map(p => (
-            <div class="card-wrapper" data-tags={(p.data.tags || []).join(',')}>
-              <ProjectCard {...p.data} link="/soon" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </details>
-
-        <!-- Section 3: Ideas -->
-    <details class="pipeline-section" open>
-      <summary class="section-header">
-        <span class="section-title">Ideas ({idea.length})</span>
-        <span class="section-arrow"></span>
-      </summary>
-      <div class="section-content">
-        <div class="project-grid">
-          {idea.map(p => (
-            <div class="card-wrapper" data-tags={(p.data.tags || []).join(',')}>
-              <ProjectCard {...p.data} link="/soon" />
-            </div>
-          ))}
-        </div>
+        {completed.length > 0 ? (
+          <div class="project-grid">
+            {completed.map(p => (
+              <div class="card-wrapper" data-tags={(p.data.tags || []).join(',')}>
+                <ProjectCard {...p.data} link={projectLink(p)} />
+              </div>
+            ))}
+          </div>
+        ) : <p class="empty-state">Nothing completed yet.</p>}
       </div>
     </details>
   </div>
 </Layout>
 
-<script>
-  // Simple, vanilla JavaScript filter engine
-  const filterButtons = document.querySelectorAll('.filter-btn');
-  const cardWrappers = document.querySelectorAll('.card-wrapper');
-
-  filterButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      // Toggle button active visuals
-      filterButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      const activeFilter = btn.getAttribute('data-filter');
-      if (!activeFilter) return; // Guard against null filters
-
-      cardWrappers.forEach(wrapper => {
-        const rawTags = wrapper.getAttribute('data-tags');
-        // Fix: Fallback to an empty string array if data-tags is null
-        const cardTags = rawTags ? rawTags.split(',') : [];
-        
-        if (activeFilter === 'all' || cardTags.includes(activeFilter)) {
-          (wrapper as HTMLElement).style.display = 'block';
-        } else {
-          (wrapper as HTMLElement).style.display = 'none';
-        }
-      });
-    });
-  });
-</script>
-
 <style>
-  .page-title {
-    font-size: 1.8rem;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    color: var(--text-main);
-  }
+  .page-title { font-size: 1.7rem; margin-bottom: 0.3rem; }
+  .page-sub { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.82rem; margin: 0 0 2rem 0; }
 
-  /* Tag Filter Toolbar Styles */
-  .filter-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 2.5rem;
-    border-bottom: 1px dashed var(--accent-sand);
-    padding-bottom: 1.25rem;
-  }
-
-  .filter-btn {
-    background: transparent;
-    border: 1px solid var(--accent-sand);
-    color: var(--text-muted);
-    padding: 0.4rem 0.8rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .filter-btn:hover, .filter-btn.active {
-    background: var(--surface-color);
-    border-color: var(--accent-green);
-    color: var(--accent-green);
-  }
-
-  /* Collapsible Layout Blueprint */
-  .pipeline-sections {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    width: 100%;
-  }
+  .pipeline-sections { display: flex; flex-direction: column; gap: 1.5rem; width: 100%; }
 
   .pipeline-section {
-    background: var(--surface-color);
-    border: 1px solid var(--accent-sand);
-    border-radius: 6px;
+    background: var(--bg-surface);
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
     overflow: hidden;
   }
 
@@ -166,50 +81,78 @@ const statuses = Array.from(
     justify-content: space-between;
     align-items: center;
     padding: 1rem 1.5rem;
-    background-color: rgba(0, 0, 0, 0.1);
+    background: var(--bg-elevated);
     cursor: pointer;
     list-style: none;
     user-select: none;
   }
-
-  .section-header::-webkit-details-marker {
-    display: none;
-  }
+  .section-header::-webkit-details-marker { display: none; }
 
   .section-title {
-    font-size: 1.1rem;
+    font-family: var(--font-display);
+    font-size: 1rem;
     font-weight: 600;
-    color: var(--text-main);
+    letter-spacing: 0.02em;
+    color: var(--bone);
   }
 
-  /* Clean Custom Accordion Arrow Indicator */
   .section-arrow {
-    width: 8px;
-    height: 8px;
+    width: 8px; height: 8px;
     border-right: 2px solid var(--text-muted);
     border-bottom: 2px solid var(--text-muted);
     transform: rotate(45deg);
     transition: transform 0.2s;
   }
+  .pipeline-section[open] .section-arrow { transform: rotate(-135deg); }
 
-  .pipeline-section[open] .section-arrow {
-    transform: rotate(-135deg);
-  }
+  .section-content { padding: 1.5rem; border-top: 1px solid var(--hairline); }
 
-  .section-content {
-    padding: 1.5rem;
-    border-top: 1px solid var(--accent-sand);
-  }
-
-  /* Your grid layouts open up full-width now */
   .project-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.1rem;
     width: 100%;
   }
 
-  .card-wrapper {
-    transition: opacity 0.2s ease;
-  }
+  .card-wrapper { transition: opacity 0.2s ease; }
 </style>
+
+<script>
+  const filterButtons = document.querySelectorAll('.status-btn, .tag-btn');
+  const cardWrappers = document.querySelectorAll('.card-wrapper');
+
+  let activeStatus = 'all';
+  let activeTag = 'all';
+
+  function applyFilters() {
+    cardWrappers.forEach(wrapper => {
+      const card = wrapper.querySelector('[data-project-status]');
+      const cardStatus = card?.getAttribute('data-project-status');
+      const rawTags = wrapper.getAttribute('data-tags');
+      const cardTags = rawTags ? rawTags.split(',') : [];
+
+      const matchesStatus = activeStatus === 'all' || cardStatus === activeStatus;
+      const matchesTag = activeTag === 'all' || cardTags.includes(activeTag);
+
+      (wrapper as HTMLElement).style.display = (matchesStatus && matchesTag) ? '' : 'none';
+    });
+  }
+
+  document.querySelectorAll('.status-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeStatus = btn.getAttribute('data-status-filter') || 'all';
+      applyFilters();
+    });
+  });
+
+  document.querySelectorAll('.tag-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeTag = btn.getAttribute('data-tag-filter') || 'all';
+      applyFilters();
+    });
+  });
+</script>

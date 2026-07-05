@@ -17,32 +17,34 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const { viewType, statusProject } = entry.data;
+const { view_type, status, title } = entry.data;
+const domain = entry.id.split('/')[0];
 ---
 
-<Layout>
+<Layout title={title} description={entry.data.description}>
   <article class="content-container">
-    
+    <p class="breadcrumb">
+      <a href="/workshop">Workshop</a> / <a href={`/workshop/${domain}`}>{domain.replace(/-/g, ' ')}</a> / {title}
+    </p>
+
     <div class={`status-banner status-${status}`}>
       <span class="status-indicator-dot"></span>
       <p>Project Pipeline Node: <span class="status-text">{status}</span></p>
     </div>
 
-    {/* Conditional rendering based on the viewType set in your markdown files */}
-    {viewType === 'dashboard' && <div class="dashboard-view"><Content /></div>}
-    {viewType === 'technical' && <div class="technical-view"><Content /></div>}
-    {viewType === 'glossary'  && <div class="glossary-view"><Content /></div>}
-    
-    {/* Fallback layout stream for files without a viewType yet */}
-    {!viewType && <div class="standard-view"><Content /></div>}
+    {view_type === 'dashboard' && <div class="dashboard-view"><Content /></div>}
+    {view_type === 'technical' && <div class="technical-view"><Content /></div>}
+    {view_type === 'glossary'  && <div class="glossary-view"><Content /></div>}
+    {!view_type && <div class="standard-view"><Content /></div>}
   </article>
 </Layout>
 
 <style>
-  /* Only layout dimensions stay here */
   .content-container { 
     max-width: 800px; 
     margin: 0 auto; 
-    padding: 2rem 1rem; 
   }
+  .breadcrumb { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0 0 1.5rem 0; }
+  .breadcrumb a { color: var(--text-faint); }
+  .breadcrumb a:hover { color: var(--green-bright); }
 </style>

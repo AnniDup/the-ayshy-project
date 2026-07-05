@@ -1,0 +1,48 @@
+---
+// src/pages/incubation.astro
+import Layout from '@layouts/Layout.astro';
+import ProjectCard from '@components/ProjectCard.astro';
+import { getCollection } from 'astro:content';
+import { projectLink } from '@lib/utils';
+
+const allProjects = await getCollection('projects');
+const incubationProjects = allProjects
+  .filter(project => project.data.status === 'idea')
+  .sort((a, b) => a.data.title.localeCompare(b.data.title));
+---
+
+<Layout title="Incubation" description="Raw ideas not yet promoted to active work.">
+  <h1 class="page-title">Incubation</h1>
+  <p class="page-sub">// {incubationProjects.length} idea{incubationProjects.length === 1 ? '' : 's'} waiting to be promoted to the Workshop</p>
+
+  <div class="grid">
+    {incubationProjects.length > 0 ? (
+      incubationProjects.map(project => {
+        const slug = project.id.replace(/\/index$/, '');
+        return (
+          <ProjectCard
+            title={project.data.title}
+            description={project.data.description}
+            link={projectLink(project)}
+            image={project.data.image}
+            tags={project.data.tags}
+            status={project.data.status}
+          />
+        );
+      })
+    ) : (
+      <p class="empty-state">Nothing incubating right now.</p>
+    )}
+  </div>
+</Layout>
+
+<style>
+  .page-title { font-size: 1.7rem; margin-bottom: 0.3rem; }
+  .page-sub { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.82rem; margin: 0 0 2rem 0; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.1rem;
+  }
+</style>

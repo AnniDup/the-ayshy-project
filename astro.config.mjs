@@ -1,9 +1,16 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import path from 'path';
 
-import icon from 'astro-icon';
-
-// https://astro.build/config
 export default defineConfig({
-  integrations: [icon()]
+  site: 'https://annidup.github.io',
+  vite: {
+    resolve: {
+      alias: {
+        '@lib': path.resolve('./src/lib'),
+        '@components': path.resolve('./src/components'),
+        '@layouts': path.resolve('./src/layouts'),
+      },
+    },
+  },
 });

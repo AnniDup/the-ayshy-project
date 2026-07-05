@@ -83,7 +83,7 @@ const { statuses, tags } = Astro.props;
     flex-direction: column;
     gap: 1rem;
     margin-bottom: 2.5rem;
-    border-bottom: 1px dashed var(--accent-sand);
+    border-bottom: 1px solid var(--hairline);
     padding-bottom: 1.5rem;
   }
 
@@ -95,35 +95,35 @@ const { statuses, tags } = Astro.props;
   }
 
   .row-label {
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--text-faint);
     min-width: 60px;
   }
 
   .status-btn, .tag-btn {
     background: transparent;
-    border: 1px solid var(--accent-sand);
+    border: 1px solid var(--hairline);
     color: var(--text-muted);
-    padding: 0.4rem 0.8rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
     cursor: pointer;
-    transition: all 0.2s;
-    text-transform: uppercase;
+    transition: all 0.15s ease;
   }
 
   .status-btn:hover, .status-btn.active {
-    background: var(--surface-color);
-    border-color: var(--accent-blue, #3b82f6);
-    color: var(--accent-blue, #3b82f6);
+    border-color: var(--green-bright);
+    color: var(--green-bright);
+    background: rgba(143,191,92,0.08);
   }
 
   .tag-btn:hover, .tag-btn.active {
-    background: var(--surface-color);
-    border-color: var(--accent-green, #10b981);
-    color: var(--accent-green, #10b981);
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(217,164,65,0.08);
   }
 
   :global(.project-card.is-hidden) {

@@ -1,16 +1,35 @@
 ---
 import '../styles/global.css';
 import Sidebar from '../components/Sidebar.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'The AyShy Project',
+  description = 'A digital garden of projects, notes, and experiments.',
+} = Astro.props;
+
+const pageTitle = title === 'The AyShy Project' ? title : `${title} · The AyShy Project`;
 ---
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" /> 
-    
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>The Ayshy Project</title>
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
   </head>
-  <body>
   <body>
     <div class="app-container">
       <Sidebar />
@@ -24,16 +43,19 @@ import Sidebar from '../components/Sidebar.astro';
 <style>
   .app-container {
     display: grid;
-    /* FIX: Starts at 260px but auto-grows to match the content width if nesting expands, safely pushing the 1fr content track over */
     grid-template-columns: minmax(260px, max-content) 1fr;
     min-height: 100vh;
     width: 100%;
   }
 
-  .content { 
-    padding: 2rem; 
-    /* FIX: Prevents child components (like grids/cards) from bursting column calculations */
-    min-width: 0; 
+  .content {
+    padding: 2.5rem 3rem;
+    min-width: 0;
     overflow-x: hidden;
+  }
+
+  @media (max-width: 720px) {
+    .app-container { grid-template-columns: 1fr; }
+    .content { padding: 1.5rem; }
   }
 </style>

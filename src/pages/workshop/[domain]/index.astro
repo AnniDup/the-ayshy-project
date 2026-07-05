@@ -3,6 +3,7 @@
 import { getCollection } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import ProjectCard from '@components/ProjectCard.astro';
+import { projectLink } from '@lib/utils';
 
 export async function getStaticPaths() {
   const allProjects = await getCollection('projects');
@@ -32,10 +33,10 @@ const displayName = (domain ?? '').replace(/-/g, ' ');
       <ProjectCard
         title={p.data.title}
         description={p.data.description}
-        link={`/workshop/${p.id.replace(/\/index$/, '')}`}
+        link={projectLink(p)}
         image={p.data.image}
         tags={p.data.tags || []}
-        status={p.data.statusProject}
+        status={p.data.status}
       />
     ))}
   </div>

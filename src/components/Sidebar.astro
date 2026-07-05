@@ -1,138 +1,152 @@
 ---
 // src/components/Sidebar.astro
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
+import { projectLink } from '@lib/utils';
 
 const allProjects = await getCollection('projects');
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 
-// Group projects by domain for the Workshop dropdown
-// FIX: Explicitly type the accumulator and loop element inside the reduce signature
-const workshopDomains = allProjects.reduce((
-  acc: Record<string, CollectionEntry<'projects'>[]>, 
-  project: CollectionEntry<'projects'>
-) => {
+// Group projects by domain for the Workshop dropdown (excludes ideas — those live in Incubation)
+const workshopDomains = allProjects.reduce((acc, project) => {
   const [domain, subProject] = project.id.split('/');
-  
-  // Skip the root folder index files and incubation items (status: 'idea')
-  if (!subProject || subProject === 'index' || subProject === 'index.md' || project.data.status === 'idea') return acc;
-  
+
+  if (!subProject || subProject === 'index' || project.data.status === 'idea') return acc;
+
   if (!acc[domain]) acc[domain] = [];
   acc[domain].push(project);
   return acc;
-}, {} as Record<string, CollectionEntry<'projects'>[]>);
+}, {} as Record<string, any[]>);
 
-// FIX: Type the sort parameters (a, b) so TypeScript knows they are Project Collection entries
-Object.keys(workshopDomains).forEach((domain: string) => {
-  workshopDomains[domain].sort((a: CollectionEntry<'projects'>, b: CollectionEntry<'projects'>) => 
-    a.data.title.localeCompare(b.data.title)
-  );
+Object.keys(workshopDomains).forEach(domain => {
+  workshopDomains[domain].sort((a, b) => a.data.title.localeCompare(b.data.title));
 });
 
-const domainList = Object.entries(workshopDomains) as Array<[string, CollectionEntry<'projects'>[]]>;
+function isActive(path: string) {
+  return currentPath === path || (path !== '/' && currentPath.startsWith(path));
+}
 ---
 
 <aside class="sidebar">
   <div class="sidebar-header">
+    <span class="mark">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 2 L21 7 V17 L12 22 L3 17 V7 Z" stroke="var(--green-bright)" stroke-width="1.4"/>
+        <path d="M12 2 V22 M3 7 L21 17 M21 7 L3 17" stroke="var(--green-bright)" stroke-width="0.6" opacity="0.5"/>
+      </svg>
+    </span>
     <h2>The AyShy Project</h2>
   </div>
-  
+
   <nav>
-    <a href="/" class="nav-button">Landing</a>
+    <a href="/" class:list={["nav-button", { "is-active": isActive('/') && currentPath === '/' }]}>Landing</a>
 
     <details class="workshop-dropdown" open>
-      <summary class="nav-button" onclick="window.location.href='/workshop'; return false;">Workshop</summary>
+      <summary
+        class:list={["nav-button", { "is-active": isActive('/workshop') }]}
+        onclick="window.location.href='/workshop'; return false;"
+      >Workshop</summary>
       <div class="dropdown-content">
-  
-        {/* FIX: Map over 'domainList' directly so you don't need inline type casting in the HTML */}
-        {domainList.map(([domain, projects]) => (
+        {Object.entries(workshopDomains).map(([domain, projects]) => (
           <div class="domain-level">
-            <a href="/soon" class="domain-link">
-              {domain.replace('-', ' ')}
+            <a href={`/workshop/${domain}`} class="domain-link">
+              {domain.replace(/-/g, ' ')}
             </a>
-            
             <div class="project-level">
-              {projects.map((p) => (
-                <a href="/soon" class="project-link">
+              {projects.map(p => (
+                <a href={projectLink(p)} class="project-link">
                   {p.data.title}
                 </a>
               ))}
             </div>
           </div>
         ))}
-
       </div>
     </details>
 
-    <a href="/incubation" class="nav-button">Incubation</a>
-    <a href="/soon" class="nav-button">Vault</a>
-    <a href="/soon" class="nav-button">Notebook</a>
+    <a href="/incubation" class:list={["nav-button", { "is-active": isActive('/incubation') }]}>Incubation</a>
+    <a href="/vault" class:list={["nav-button", { "is-active": isActive('/vault') }]}>Vault</a>
+    <a href="/notebook" class:list={["nav-button", { "is-active": isActive('/notebook') }]}>Notebook</a>
   </nav>
 </aside>
 
 <style>
   .sidebar {
-    background-color: var(--surface-color);
-    padding: 1.5rem;
-    border-right: 1px solid var(--accent-sand);
-    height: 100vh;
-    width: 260px;
-  }
-  .sidebar-header { 
-    margin-bottom: 2rem; 
-    color: var(--accent-green); 
+    background: var(--bg-surface);
+    border-right: 1px solid var(--hairline);
+    padding: 1.75rem 1.25rem;
+    min-height: 100vh;
   }
 
-  nav a.nav-button,
-  nav summary.nav-button { 
-    display: block; 
-    padding: 0.5rem 0; 
-    color: var(--text-main); 
-    transition: 0.2s;
-    cursor: pointer;
-    font-weight: bold;
-    text-decoration: none;
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 2.25rem;
   }
-  nav a.nav-button:hover,
-  nav summary.nav-button:hover { 
-    color: var(--accent-green); 
-    padding-left: 0.5rem; 
-  }
-
-  .workshop-dropdown summary {
-    list-style: none;
-  }
-  .workshop-dropdown summary::-webkit-details-marker {
-    display: none;
-  }
-  
-  .dropdown-content {
-    padding-left: 1rem;
-  }
-
-  .domain-level {
-    margin-top: 0.75rem;
-  }
-  .domain-link {
-    display: block;
-    color: var(--accent-sand);
-    text-decoration: none;
-    text-transform: capitalize;
+  .mark { width: 22px; height: 22px; flex-shrink: 0; }
+  .mark svg { width: 100%; height: 100%; }
+  .sidebar-header h2 {
+    font-family: var(--font-display);
     font-size: 0.95rem;
     font-weight: 600;
-    padding: 0.25rem 0;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0;
+    color: var(--bone);
   }
 
-  .project-level {
-    padding-left: 1.25rem; 
-  }
-  .project-link {
-    display: block;
+  nav a.nav-button, nav summary.nav-button {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.6rem;
+    margin-bottom: 0.15rem;
     color: var(--text-muted);
     text-decoration: none;
-    font-size: 0.85rem;
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-left: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  nav a.nav-button:hover, nav summary.nav-button:hover {
+    color: var(--bone);
+    background: var(--bg-elevated);
+    opacity: 1;
+  }
+  nav a.nav-button.is-active, nav summary.nav-button.is-active {
+    color: var(--green-bright);
+    border-left-color: var(--green-bright);
+    background: var(--bg-elevated);
+    text-shadow: 0 0 12px rgba(143,191,92,0.35);
+  }
+
+  .workshop-dropdown summary { list-style: none; }
+  .workshop-dropdown summary::-webkit-details-marker { display: none; }
+
+  .dropdown-content { padding-left: 0.9rem; margin-top: 0.2rem; }
+  .domain-level { margin-top: 0.6rem; }
+  .domain-link {
+    display: block;
+    color: var(--gold);
+    text-decoration: none;
+    text-transform: capitalize;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
     padding: 0.2rem 0;
+    opacity: 0.85;
   }
-  
-  .project-link:hover, .domain-link:hover {
-    color: var(--accent-green);
+  .domain-link:hover { opacity: 1; }
+  .project-level { padding-left: 1rem; border-left: 1px dashed var(--hairline); margin-left: 0.3rem; }
+  .project-link {
+    display: block;
+    color: var(--text-faint);
+    text-decoration: none;
+    font-size: 0.8rem;
+    padding: 0.25rem 0;
   }
+  .project-link:hover { color: var(--bone); opacity: 1; }
 </style>

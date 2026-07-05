@@ -1,0 +1,16 @@
+---
+import Layout from '@layouts/Layout.astro';
+---
+<Layout title="Notebook" description="Loose notes, not tied to a single project.">
+  <h1 class="page-title">Notebook</h1>
+  <p class="page-sub">// for notes that don't belong to one project</p>
+  <div class="panel-card empty-panel">
+    <p class="empty-state">No notes yet. This section is reserved for freeform, evergreen writing that sits alongside the structured Workshop projects.</p>
+  </div>
+</Layout>
+
+<style>
+  .page-title { font-size: 1.7rem; margin-bottom: 0.3rem; }
+  .page-sub { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.82rem; margin: 0 0 2rem 0; }
+  .empty-panel { padding: 2rem; max-width: 560px; }
+</style>
