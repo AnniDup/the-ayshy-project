@@ -1,158 +1,157 @@
 ---
-// src/pages/workshop/index.astro — the active project board
+// src/pages/workshop/index.astro
+// Shows all projects. Filterable by domain, status, and tag.
 import { getCollection } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import ProjectCard from '@components/ProjectCard.astro';
-import FilterToolbar from '@components/FilterToolbar.astro';
 import { projectLink } from '@lib/utils';
+import { DOMAINS } from '@lib/taxonomy';
 
 const allProjects = await getCollection('projects');
-
-// Ideas live in Incubation, not here.
-const activeProjects = allProjects.filter(p => p.data.status !== 'idea');
-const inProgress = activeProjects.filter(p => p.data.status === 'in-progress');
-const completed = activeProjects.filter(p => p.data.status === 'completed');
-
-const allTags = Array.from(new Set(activeProjects.flatMap(p => p.data.tags || []))).sort();
-const statuses = Array.from(new Set(activeProjects.map(p => p.data.status).filter(Boolean)));
-
+const allTags = Array.from(new Set(allProjects.flatMap(p => p.data.tags || []))).sort();
+const statuses = ['active', 'resting', 'shelved', 'idea'];
 ---
 
-<Layout title="Workshop" description="The active project board.">
-  <h1 class="page-title">Project Horizon</h1>
-  <p class="page-sub">// {activeProjects.length} active or completed entries</p>
+<Layout title="Workshop" description="All projects across all domains.">
+  <h1 class="page-title">Workshop</h1>
+  <p class="page-sub">// {allProjects.length} {allProjects.length === 1 ? 'project' : 'projects'} across {DOMAINS.length} domains</p>
 
-  <FilterToolbar statuses={statuses} tags={allTags} />
-
-  <div class="pipeline-sections">
-    <details class="pipeline-section" open>
-      <summary class="section-header">
-        <span class="section-title">In Progress ({inProgress.length})</span>
-        <span class="section-arrow"></span>
-      </summary>
-      <div class="section-content">
-        {inProgress.length > 0 ? (
-          <div class="project-grid">
-            {inProgress.map(p => (
-              <div class="card-wrapper" data-tags={(p.data.tags || []).join(',')}>
-                <ProjectCard {...p.data} link={projectLink(p)} />
-              </div>
-            ))}
-          </div>
-        ) : <p class="empty-state">Nothing in progress right now.</p>}
-      </div>
-    </details>
-
-    <details class="pipeline-section" open>
-      <summary class="section-header">
-        <span class="section-title">Completed ({completed.length})</span>
-        <span class="section-arrow"></span>
-      </summary>
-      <div class="section-content">
-        {completed.length > 0 ? (
-          <div class="project-grid">
-            {completed.map(p => (
-              <div class="card-wrapper" data-tags={(p.data.tags || []).join(',')}>
-                <ProjectCard {...p.data} link={projectLink(p)} />
-              </div>
-            ))}
-          </div>
-        ) : <p class="empty-state">Nothing completed yet.</p>}
-      </div>
-    </details>
+  <div class="filter-bar">
+    <div class="filter-row">
+      <span class="filter-label">Domain</span>
+      <button class="filter-btn domain-btn active" data-domain="all">All</button>
+      {DOMAINS.map(d => (
+        <button class="filter-btn domain-btn" data-domain={d.slug}>{d.label}</button>
+      ))}
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">Status</span>
+      <button class="filter-btn status-btn active" data-status="all">All</button>
+      {statuses.map(s => (
+        <button class="filter-btn status-btn" data-status={s}>{s}</button>
+      ))}
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">Tag</span>
+      <button class="filter-btn tag-btn active" data-tag="all">All</button>
+      {allTags.map(t => (
+        <button class="filter-btn tag-btn" data-tag={t}>{t}</button>
+      ))}
+    </div>
   </div>
+
+  <div class="project-grid">
+    {allProjects.map(p => (
+      <div
+        class="card-wrapper"
+        data-domains={(p.data.domains || []).join(',')}
+        data-status={(p.data.status || '').toLowerCase()}
+        data-tags={(p.data.tags || []).join(',')}
+      >
+        <ProjectCard
+          title={p.data.title}
+          description={p.data.description}
+          link={projectLink(p)}
+          image={p.data.image}
+          tags={p.data.tags || []}
+          status={p.data.status}
+          domains={p.data.domains || []}
+        />
+      </div>
+    ))}
+  </div>
+
+  <p class="no-results" style="display:none">No projects match the current filters.</p>
 </Layout>
 
 <style>
   .page-title { font-size: 1.7rem; margin-bottom: 0.3rem; }
   .page-sub { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.82rem; margin: 0 0 2rem 0; }
 
-  .pipeline-sections { display: flex; flex-direction: column; gap: 1.5rem; width: 100%; }
-
-  .pipeline-section {
-    background: var(--bg-surface);
-    border: 1px solid var(--hairline);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-
-  .section-header {
+  .filter-bar {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    padding: 1rem 1.5rem;
-    background: var(--bg-elevated);
+    gap: 0.4rem;
+  }
+  .filter-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    min-width: 55px;
+    letter-spacing: 0.04em;
+  }
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    color: var(--text-muted);
+    padding: 0.25rem 0.7rem;
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
     cursor: pointer;
-    list-style: none;
-    user-select: none;
+    transition: all 0.15s ease;
+    text-transform: capitalize;
   }
-  .section-header::-webkit-details-marker { display: none; }
-
-  .section-title {
-    font-family: var(--font-display);
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    color: var(--bone);
-  }
-
-  .section-arrow {
-    width: 8px; height: 8px;
-    border-right: 2px solid var(--text-muted);
-    border-bottom: 2px solid var(--text-muted);
-    transform: rotate(45deg);
-    transition: transform 0.2s;
-  }
-  .pipeline-section[open] .section-arrow { transform: rotate(-135deg); }
-
-  .section-content { padding: 1.5rem; border-top: 1px solid var(--hairline); }
+  .domain-btn:hover, .domain-btn.active { border-color: var(--green-bright); color: var(--green-bright); background: rgba(143,191,92,0.08); }
+  .status-btn:hover, .status-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(217,164,65,0.08); }
+  .tag-btn:hover, .tag-btn.active       { border-color: var(--reserved-sky); color: var(--reserved-sky); background: rgba(79,163,168,0.08); }
 
   .project-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1.1rem;
-    width: 100%;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
   }
-
-  .card-wrapper { transition: opacity 0.2s ease; }
+  .card-wrapper { transition: opacity 0.15s ease; }
+  .no-results { color: var(--text-muted); font-style: italic; margin-top: 2rem; }
 </style>
 
 <script>
-  const filterButtons = document.querySelectorAll('.status-btn, .tag-btn');
-  const cardWrappers = document.querySelectorAll('.card-wrapper');
-
-  let activeStatus = 'all';
-  let activeTag = 'all';
+  let activeFilters = { domain: 'all', status: 'all', tag: 'all' };
 
   function applyFilters() {
-    cardWrappers.forEach(wrapper => {
-      const card = wrapper.querySelector('[data-project-status]');
-      const cardStatus = card?.getAttribute('data-project-status');
-      const rawTags = wrapper.getAttribute('data-tags');
-      const cardTags = rawTags ? rawTags.split(',') : [];
+    const wrappers = document.querySelectorAll<HTMLElement>('.card-wrapper');
+    let visible = 0;
 
-      const matchesStatus = activeStatus === 'all' || cardStatus === activeStatus;
-      const matchesTag = activeTag === 'all' || cardTags.includes(activeTag);
+    wrappers.forEach(el => {
+      const domains = (el.dataset.domains ?? '').split(',').filter(Boolean);
+      const status  = el.dataset.status ?? '';
+      const tags    = (el.dataset.tags ?? '').split(',').filter(Boolean);
 
-      (wrapper as HTMLElement).style.display = (matchesStatus && matchesTag) ? '' : 'none';
+      const matchDomain = activeFilters.domain === 'all' || domains.includes(activeFilters.domain);
+      const matchStatus = activeFilters.status === 'all' || status === activeFilters.status;
+      const matchTag    = activeFilters.tag === 'all'    || tags.includes(activeFilters.tag);
+
+      const show = matchDomain && matchStatus && matchTag;
+      el.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    const noResults = document.querySelector<HTMLElement>('.no-results');
+    if (noResults) noResults.style.display = visible === 0 ? '' : 'none';
+  }
+
+  function wireButtons(selector: string, key: keyof typeof activeFilters, dataAttr: string) {
+    document.querySelectorAll(selector).forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll(selector).forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilters[key] = (btn as HTMLElement).dataset[dataAttr] || 'all';
+        applyFilters();
+      });
     });
   }
 
-  document.querySelectorAll('.status-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeStatus = btn.getAttribute('data-status-filter') || 'all';
-      applyFilters();
-    });
-  });
-
-  document.querySelectorAll('.tag-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeTag = btn.getAttribute('data-tag-filter') || 'all';
-      applyFilters();
-    });
-  });
+  wireButtons('.domain-btn', 'domain', 'domain');
+  wireButtons('.status-btn', 'status', 'status');
+  wireButtons('.tag-btn',    'tag',    'tag');
 </script>

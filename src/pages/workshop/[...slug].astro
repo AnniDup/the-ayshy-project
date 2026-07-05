@@ -1,49 +1,52 @@
 ---
+// src/pages/workshop/[...slug].astro
+// Flat URL: /workshop/[project-slug]
 import { getCollection, render } from 'astro:content';
-import Layout from '../../layouts/Layout.astro';
+import Layout from '@layouts/Layout.astro';
+import { getDomainLabel } from '@lib/taxonomy';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
-  
-  return projects.map(entry => {
-    const slug = entry.id.replace(/\/index$/, '');
-    
-    return {
-      params: { slug: slug },
-      props: { entry },
-    };
-  });
+  return projects.map(entry => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
 }
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const { view_type, status, title } = entry.data;
-const domain = entry.id.split('/')[0];
+const { view_type, status, title, domains } = entry.data;
 ---
 
 <Layout title={title} description={entry.data.description}>
   <article class="content-container">
+
     <p class="breadcrumb">
-      <a href="/workshop">Workshop</a> / <a href={`/workshop/${domain}`}>{domain.replace(/-/g, ' ')}</a> / {title}
+      <a href="/workshop">Workshop</a>
+      {(domains || []).map((d, i) => (
+        <span>
+          {i > 0 ? ' · ' : ' / '}
+          <a href={`/workshop/${d}`}>{getDomainLabel(d)}</a>
+        </span>
+      ))}
+      {' / '}{title}
     </p>
 
     <div class={`status-banner status-${status}`}>
       <span class="status-indicator-dot"></span>
-      <p>Project Pipeline Node: <span class="status-text">{status}</span></p>
+      <p>Status: <span class="status-text">{status}</span></p>
     </div>
 
-    {view_type === 'dashboard' && <div class="dashboard-view"><Content /></div>}
-    {view_type === 'technical' && <div class="technical-view"><Content /></div>}
-    {view_type === 'glossary'  && <div class="glossary-view"><Content /></div>}
-    {!view_type && <div class="standard-view"><Content /></div>}
+    {view_type === 'dashboard'  && <div class="dashboard-view"><Content /></div>}
+    {view_type === 'technical'  && <div class="technical-view"><Content /></div>}
+    {view_type === 'glossary'   && <div class="glossary-view"><Content /></div>}
+    {(!view_type || view_type === 'standard') && <div class="standard-view"><Content /></div>}
+
   </article>
 </Layout>
 
 <style>
-  .content-container { 
-    max-width: 800px; 
-    margin: 0 auto; 
-  }
+  .content-container { max-width: 800px; }
   .breadcrumb { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0 0 1.5rem 0; }
   .breadcrumb a { color: var(--text-faint); }
   .breadcrumb a:hover { color: var(--green-bright); }

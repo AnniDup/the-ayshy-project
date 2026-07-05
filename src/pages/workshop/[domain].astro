@@ -1,0 +1,55 @@
+---
+// src/pages/workshop/[domain].astro
+// One page per domain, generated from the controlled DOMAINS list in taxonomy.ts.
+import { getCollection } from 'astro:content';
+import Layout from '@layouts/Layout.astro';
+import ProjectCard from '@components/ProjectCard.astro';
+import { DOMAINS, getDomainLabel } from '@lib/taxonomy';
+import { projectLink } from '@lib/utils';
+
+export async function getStaticPaths() {
+  return DOMAINS.map(d => ({ params: { domain: d.slug } }));
+}
+
+const { domain } = Astro.params;
+const label = getDomainLabel(domain);
+const allProjects = await getCollection('projects');
+
+const domainProjects = allProjects
+  .filter(p => (p.data.domains || []).includes(domain))
+  .sort((a, b) => (b.data.date?.getTime() ?? 0) - (a.data.date?.getTime() ?? 0));
+---
+
+<Layout title={label} description={`Projects in ${label}.`}>
+  <p class="breadcrumb"><a href="/workshop">Workshop</a> / {label}</p>
+  <h1 class="page-title">{label}</h1>
+  <p class="page-sub">// {domainProjects.length} {domainProjects.length === 1 ? 'project' : 'projects'}</p>
+
+  {domainProjects.length > 0 ? (
+    <div class="project-grid">
+      {domainProjects.map(p => (
+        <ProjectCard
+          title={p.data.title}
+          description={p.data.description}
+          link={projectLink(p)}
+          image={p.data.image}
+          tags={p.data.tags || []}
+          status={p.data.status}
+          domains={p.data.domains || []}
+        />
+      ))}
+    </div>
+  ) : (
+    <p class="empty-state">No projects in this domain yet.</p>
+  )}
+</Layout>
+
+<style>
+  .breadcrumb { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0 0 0.75rem 0; }
+  .breadcrumb a { color: var(--text-faint); }
+  .breadcrumb a:hover { color: var(--green-bright); }
+  .page-title { font-size: 1.7rem; margin-bottom: 0.3rem; }
+  .page-sub { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.82rem; margin: 0 0 2rem 0; }
+  .project-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .empty-state { color: var(--text-muted); font-style: italic; }
+</style>

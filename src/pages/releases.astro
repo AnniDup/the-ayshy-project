@@ -1,0 +1,89 @@
+---
+import Layout from '@layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+
+const entries = await getCollection('changelog');
+const entry = entries[0];
+if (!entry) throw new Error('Changelog entry not found');
+const { Content } = await render(entry);
+---
+
+<Layout title="Release Log" description="A running log of changes, additions, and updates to The AyShy Project.">
+  <div class="changelog-body">
+    <Content />
+  </div>
+</Layout>
+
+<style>
+  .changelog-body {
+    max-width: 720px;
+    font-family: var(--font-body);
+    color: var(--bone);
+  }
+
+  .changelog-body :global(h1) {
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    color: var(--bone);
+  }
+
+  .changelog-body :global(h2) {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--green-bright);
+    margin: 2.5rem 0 1rem 0;
+    padding: 0.6rem 1rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--hairline);
+    border-left: 3px solid var(--green-bright);
+    border-radius: 3px;
+  }
+
+  .changelog-body :global(h3) {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gold);
+    margin: 1.25rem 0 0.4rem 0;
+  }
+
+  .changelog-body :global(ul) {
+    margin: 0 0 0.5rem 0;
+    padding-left: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .changelog-body :global(li) {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+
+  .changelog-body :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--bone);
+    background: var(--bg-elevated);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  .changelog-body :global(hr) {
+    border: none;
+    border-top: 1px solid var(--hairline);
+    margin: 2rem 0;
+  }
+
+  .changelog-body :global(p) {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+</style>

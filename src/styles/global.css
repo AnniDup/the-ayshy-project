@@ -85,20 +85,24 @@ code, .mono { font-family: var(--font-mono); }
 .status-banner p { margin: 0; color: var(--text-muted); }
 .status-text { text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
 
-.status-banner.status-idea { border-left: 3px solid var(--gold); }
-.status-banner.status-idea .status-indicator-dot { background: var(--gold); }
-.status-banner.status-idea .status-text { color: var(--gold); }
-
-.status-banner.status-in-progress { border-left: 3px solid var(--green-bright); }
-.status-banner.status-in-progress .status-indicator-dot {
+.status-banner.status-active { border-left: 3px solid var(--green-bright); }
+.status-banner.status-active .status-indicator-dot {
   background: var(--green-bright);
   box-shadow: 0 0 8px rgba(143,191,92,0.45);
 }
-.status-banner.status-in-progress .status-text { color: var(--green-bright); }
+.status-banner.status-active .status-text { color: var(--green-bright); }
 
-.status-banner.status-completed { border-left: 3px solid var(--text-muted); }
-.status-banner.status-completed .status-indicator-dot { background: var(--text-muted); }
-.status-banner.status-completed .status-text { color: var(--text-muted); }
+.status-banner.status-resting { border-left: 3px solid var(--gold); }
+.status-banner.status-resting .status-indicator-dot { background: var(--gold); }
+.status-banner.status-resting .status-text { color: var(--gold); }
+
+.status-banner.status-shelved { border-left: 3px solid var(--text-faint); }
+.status-banner.status-shelved .status-indicator-dot { background: var(--text-faint); }
+.status-banner.status-shelved .status-text { color: var(--text-faint); }
+
+.status-banner.status-idea { border-left: 3px solid var(--reserved-sky); }
+.status-banner.status-idea .status-indicator-dot { background: var(--reserved-sky); }
+.status-banner.status-idea .status-text { color: var(--reserved-sky); }
 
 /* ---------- Shared "panel" surface ---------- */
 .panel-card {

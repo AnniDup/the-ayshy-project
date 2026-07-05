@@ -4,7 +4,7 @@ description: "One sentence describing what this project is."
 image: "./assets/thumbnail.jpg"
 tags: ["Digital Stack", "Web"]
 date: 2026-01-01
-status: "in-progress"
+status: "active"
 isDraft: false
 placeholder: true
 view_type: "technical"

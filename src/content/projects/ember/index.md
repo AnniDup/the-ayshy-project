@@ -1,12 +1,14 @@
 ---
-title: "Digital Garden"
-description: "Building this garden from scratch using Astro and Git Pages."
+title: "Fallout 4 Ember"
+description: "Developing a mod for turning vanilla into what I always wanted it to be."
 image: "./assets/thumbnail.jpg"
-tags: ["Astro", "Git Pages", "Online"]
+tags: ["Modding", "Fallout 4", "Games"]
+domains: ["fallout-4"]
 date: 2026-06-08
 view_type: "dashboard"
-status: "in-progress"
+status: "resting"
 isDraft: false
+placeholder: true
 ---
 
 # 🚧 Project Roadmap & Tasks

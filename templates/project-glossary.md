@@ -4,7 +4,7 @@ description: "One sentence describing what this reference covers."
 image: "./assets/thumbnail.jpg"
 tags: ["Games", "Terraria"]
 date: 2026-01-01
-status: "in-progress"
+status: "active"
 isDraft: false
 placeholder: true
 view_type: "glossary"

@@ -1,30 +1,41 @@
 ---
-// src/components/Sidebar.astro
 import { getCollection } from 'astro:content';
 import { projectLink } from '@lib/utils';
+import { DOMAINS } from '@lib/taxonomy';
 
 const allProjects = await getCollection('projects');
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 
-// Group projects by domain for the Workshop dropdown (excludes ideas — those live in Incubation)
-const workshopDomains = allProjects.reduce((acc, project) => {
-  const [domain, subProject] = project.id.split('/');
-
-  if (!subProject || subProject === 'index' || project.data.status === 'idea') return acc;
-
-  if (!acc[domain]) acc[domain] = [];
-  acc[domain].push(project);
+const projectsByDomain = DOMAINS.reduce((acc, domain) => {
+  acc[domain.slug] = allProjects
+    .filter(p => (p.data.domains || []).includes(domain.slug))
+    .sort((a, b) => a.data.title.localeCompare(b.data.title));
   return acc;
-}, {} as Record<string, any[]>);
-
-Object.keys(workshopDomains).forEach(domain => {
-  workshopDomains[domain].sort((a, b) => a.data.title.localeCompare(b.data.title));
-});
+}, {} as Record<string, typeof allProjects>);
 
 function isActive(path: string) {
   return currentPath === path || (path !== '/' && currentPath.startsWith(path));
 }
+
+// Which domain panel should be open:
+// - on a domain page: match the slug directly
+// - on a project page: find which domain(s) the project belongs to and open the first one
+const activeDomain = (() => {
+  // Direct domain page match
+  const directMatch = DOMAINS.find(d => currentPath === `/workshop/${d.slug}`)?.slug;
+  if (directMatch) return directMatch;
+
+  // Project page — find the project and return its first domain
+  const projectSlug = currentPath.replace('/workshop/', '');
+  const activeProject = allProjects.find(p => p.id === projectSlug);
+  return activeProject?.data?.domains?.[0] ?? null;
+})();
 ---
+
+<!-- Hide all panels before JS runs to prevent flash -->
+<style>
+  [data-panel] { display: none; }
+</style>
 
 <aside class="sidebar">
   <div class="sidebar-header">
@@ -38,51 +49,173 @@ function isActive(path: string) {
   </div>
 
   <nav>
-    <a href="/" class:list={["nav-button", { "is-active": isActive('/') && currentPath === '/' }]}>Landing</a>
+    <a href="/" class:list={["nav-button", { "is-active": currentPath === '' || currentPath === '/' }]}>
+      Landing
+    </a>
 
-    <details class="workshop-dropdown" open>
-      <summary
-        class:list={["nav-button", { "is-active": isActive('/workshop') }]}
-        onclick="window.location.href='/workshop'; return false;"
-      >Workshop</summary>
-      <div class="dropdown-content">
-        {Object.entries(workshopDomains).map(([domain, projects]) => (
-          <div class="domain-level">
-            <a href={`/workshop/${domain}`} class="domain-link">
-              {domain.replace(/-/g, ' ')}
-            </a>
-            <div class="project-level">
-              {projects.map(p => (
-                <a href={projectLink(p)} class="project-link">
-                  {p.data.title}
-                </a>
-              ))}
+    <div class:list={["nav-row", { "is-active": isActive('/workshop') }]}>
+      <a href="/workshop" class="nav-row-label">Workshop</a>
+      <button class="nav-chevron-btn" data-toggle="workshop" aria-label="Toggle Workshop">▾</button>
+    </div>
+
+    <div data-panel="workshop">
+      {DOMAINS.filter(domain => (projectsByDomain[domain.slug] || []).length > 0).map(domain => {
+        const projects = projectsByDomain[domain.slug] || [];
+        const isThisDomainActive = activeDomain === domain.slug;
+        return (
+          <div class="domain-group">
+            <div class:list={["domain-row", { "domain-active": isThisDomainActive }]}>
+              <a
+                href={`/workshop/${domain.slug}`}
+                class="domain-row-label"
+                data-domain={domain.slug}
+              >
+                {domain.label}
+              </a>
+              {projects.length > 0 && (
+                <button
+                  class="domain-chevron-btn"
+                  data-domain-toggle={domain.slug}
+                  aria-label={`Toggle ${domain.label}`}
+                >▾</button>
+              )}
             </div>
-          </div>
-        ))}
-      </div>
-    </details>
 
-    <a href="/incubation" class:list={["nav-button", { "is-active": isActive('/incubation') }]}>Incubation</a>
-    <a href="/vault" class:list={["nav-button", { "is-active": isActive('/vault') }]}>Vault</a>
+            {projects.length > 0 && (
+              <div data-panel={`domain-${domain.slug}`}>
+                {projects.map(p => (
+                  <a
+                    href={projectLink(p)}
+                    class:list={["project-link", {
+                      "project-active": currentPath === `/workshop/${p.id}`
+                    }]}
+                  >
+                    {p.data.title}
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+
     <a href="/notebook" class:list={["nav-button", { "is-active": isActive('/notebook') }]}>Notebook</a>
   </nav>
+
+  <div class="sidebar-footer">
+    <a href="/releases" class:list={["footer-icon", { "is-active": isActive('/releases') }]} title="Release Log">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+        <rect x="9" y="3" width="6" height="4" rx="1"/>
+        <line x1="9" y1="12" x2="15" y2="12"/>
+        <line x1="9" y1="16" x2="13" y2="16"/>
+      </svg>
+      <span class="footer-icon-label">Release Log</span>
+    </a>
+    <a href="https://github.com/AnniDup/the-ayshy-project" target="_blank" rel="noopener" class="footer-icon" title="GitHub">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+      </svg>
+      <span class="footer-icon-label">GitHub</span>
+    </a>
+  </div>
 </aside>
+
+<script define:vars={{ activeDomain }}>
+  // Run immediately — panels are already hidden via CSS, JS reveals the right ones
+  function isHidden(panel) {
+    return window.getComputedStyle(panel).display === 'none';
+  }
+
+  function openPanel(key) {
+    const panel = document.querySelector(`[data-panel="${key}"]`);
+    const btn = document.querySelector(`[data-toggle="${key}"], [data-domain-toggle="${key}"]`);
+    if (panel) panel.style.display = 'block';
+    if (btn) btn.classList.add('is-open');
+  }
+
+  function closePanel(key) {
+    const panel = document.querySelector(`[data-panel="${key}"]`);
+    const btn = document.querySelector(`[data-toggle="${key}"], [data-domain-toggle="${key}"]`);
+    if (panel) panel.style.display = 'none';
+    if (btn) btn.classList.remove('is-open');
+  }
+
+  // Set initial state — workshop always open, only active domain open
+  openPanel('workshop');
+  if (activeDomain) openPanel(`domain-${activeDomain}`);
+
+  // Workshop chevron toggles workshop panel
+  document.querySelector('[data-toggle="workshop"]')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const panel = document.querySelector('[data-panel="workshop"]');
+    if (!panel) return;
+    isHidden(panel) ? openPanel('workshop') : closePanel('workshop');
+  });
+
+  // Domain label clicks: navigate AND accordion
+  document.querySelectorAll('.domain-row-label').forEach(label => {
+    label.addEventListener('click', (e) => {
+      const slug = label.dataset.domain;
+      if (!slug) return;
+
+      // Close all other domain panels (accordion behaviour)
+      document.querySelectorAll('[data-panel^="domain-"]').forEach(panel => {
+        const panelKey = panel.getAttribute('data-panel');
+        if (panelKey !== `domain-${slug}`) {
+          panel.style.display = 'none';
+          const otherSlug = panelKey.replace('domain-', '');
+          const otherBtn = document.querySelector(`[data-domain-toggle="${otherSlug}"]`);
+          if (otherBtn) otherBtn.classList.remove('is-open');
+        }
+      });
+
+      // Open this domain's panel
+      openPanel(`domain-${slug}`);
+
+      // Navigation happens naturally via the <a> href
+    });
+  });
+
+  // Domain chevron toggles only that domain (no navigation)
+  document.querySelectorAll('[data-domain-toggle]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const slug = btn.getAttribute('data-domain-toggle');
+      const panel = document.querySelector(`[data-panel="domain-${slug}"]`);
+      if (!panel) return;
+
+      // Close siblings
+      document.querySelectorAll('[data-panel^="domain-"]').forEach(p => {
+        const pKey = p.getAttribute('data-panel');
+        if (pKey !== `domain-${slug}`) {
+          p.style.display = 'none';
+          const otherSlug = pKey.replace('domain-', '');
+          const otherBtn = document.querySelector(`[data-domain-toggle="${otherSlug}"]`);
+          if (otherBtn) otherBtn.classList.remove('is-open');
+        }
+      });
+
+      // Toggle this one
+      if (!panel) return;
+      isHidden(panel) ? openPanel(`domain-${slug}`) : closePanel(`domain-${slug}`);
+    });
+  });
+</script>
 
 <style>
   .sidebar {
     background: var(--bg-surface);
     border-right: 1px solid var(--hairline);
-    padding: 1.75rem 1.25rem;
+    padding: 1.75rem 1.25rem 0;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 
-  .sidebar-header {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 2.25rem;
-  }
+  nav { flex: 1; }
+  .sidebar-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 2.25rem; }
   .mark { width: 22px; height: 22px; flex-shrink: 0; }
   .mark svg { width: 100%; height: 100%; }
   .sidebar-header h2 {
@@ -95,10 +228,9 @@ function isActive(path: string) {
     color: var(--bone);
   }
 
-  nav a.nav-button, nav summary.nav-button {
+  nav a.nav-button {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
     padding: 0.55rem 0.6rem;
     margin-bottom: 0.15rem;
     color: var(--text-muted);
@@ -109,44 +241,142 @@ function isActive(path: string) {
     letter-spacing: 0.05em;
     text-transform: uppercase;
     border-left: 2px solid transparent;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+  }
+  nav a.nav-button:hover { color: var(--bone); background: var(--bg-elevated); opacity: 1; }
+  nav a.nav-button.is-active { color: var(--green-bright); border-left-color: var(--green-bright); background: var(--bg-elevated); }
+
+  .nav-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.15rem;
+    border-left: 2px solid transparent;
+    transition: border-color 0.15s;
+  }
+  .nav-row:hover { background: var(--bg-elevated); }
+  .nav-row.is-active { border-left-color: var(--green-bright); background: var(--bg-elevated); }
+
+  .nav-row-label {
+    flex: 1;
+    padding: 0.55rem 0.6rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: color 0.15s;
+  }
+  .nav-row:hover .nav-row-label { color: var(--bone); }
+  .nav-row.is-active .nav-row-label { color: var(--green-bright); }
+
+  .nav-chevron-btn, .domain-chevron-btn {
+    background: none;
+    border: none;
+    color: var(--text-faint);
+    padding: 0.55rem 0.6rem;
     cursor: pointer;
-    transition: all 0.15s ease;
+    font-size: 0.7rem;
+    line-height: 1;
+    transition: color 0.15s, transform 0.2s;
   }
-  nav a.nav-button:hover, nav summary.nav-button:hover {
-    color: var(--bone);
-    background: var(--bg-elevated);
-    opacity: 1;
-  }
-  nav a.nav-button.is-active, nav summary.nav-button.is-active {
-    color: var(--green-bright);
-    border-left-color: var(--green-bright);
-    background: var(--bg-elevated);
-    text-shadow: 0 0 12px rgba(143,191,92,0.35);
-  }
+  .nav-chevron-btn:hover { color: var(--bone); }
+  .nav-chevron-btn.is-open, .domain-chevron-btn.is-open { transform: rotate(180deg); }
 
-  .workshop-dropdown summary { list-style: none; }
-  .workshop-dropdown summary::-webkit-details-marker { display: none; }
+  [data-panel="workshop"] { padding-left: 0.6rem; margin-bottom: 0.25rem; }
+  .domain-group { margin-top: 0.15rem; }
 
-  .dropdown-content { padding-left: 0.9rem; margin-top: 0.2rem; }
-  .domain-level { margin-top: 0.6rem; }
-  .domain-link {
-    display: block;
+  .domain-row {
+    display: flex;
+    align-items: center;
+    border-left: 2px solid transparent;
+    border-radius: 3px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .domain-row:hover { background: var(--bg-elevated); border-left-color: var(--gold); }
+  .domain-row.domain-active { border-left-color: var(--gold); background: var(--bg-elevated); }
+
+  .domain-row-label {
+    flex: 1;
+    padding: 0.4rem 0.5rem;
     color: var(--gold);
     text-decoration: none;
-    text-transform: capitalize;
     font-family: var(--font-mono);
     font-size: 0.78rem;
-    padding: 0.2rem 0;
-    opacity: 0.85;
+    font-weight: 500;
+    transition: color 0.15s;
   }
-  .domain-link:hover { opacity: 1; }
-  .project-level { padding-left: 1rem; border-left: 1px dashed var(--hairline); margin-left: 0.3rem; }
+  .domain-row:hover .domain-row-label { color: var(--bright-pop); }
+
+  .domain-chevron-btn {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.65rem;
+  }
+  .domain-chevron-btn:hover { color: var(--gold); }
+
+  [data-panel^="domain-"] {
+    padding-left: 0.9rem;
+    border-left: 1px dashed var(--hairline);
+    margin-left: 0.75rem;
+    margin-top: 0.2rem;
+    margin-bottom: 0.3rem;
+  }
+
   .project-link {
     display: block;
     color: var(--text-faint);
     text-decoration: none;
-    font-size: 0.8rem;
-    padding: 0.25rem 0;
+    font-size: 0.79rem;
+    padding: 0.25rem 0.3rem;
+    border-radius: 2px;
+    transition: color 0.15s, background 0.15s;
   }
-  .project-link:hover { color: var(--bone); opacity: 1; }
+  .project-link:hover { color: var(--bone); background: var(--bg-elevated); opacity: 1; }
+  .project-link.project-active { color: var(--green-bright); }
+
+  /* Bottom icon bar */
+  .sidebar-footer {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    padding: 1rem 0.6rem 0.75rem;
+    border-top: 1px solid var(--hairline);
+    background: var(--bg-surface);
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .footer-icon {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.6rem;
+    color: var(--text-faint);
+    text-decoration: none;
+    border-radius: 3px;
+    border: 1px solid transparent;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+    flex: 1;
+    justify-content: center;
+  }
+  .footer-icon:hover {
+    color: var(--bone);
+    background: var(--bg-elevated);
+    border-color: var(--hairline);
+    opacity: 1;
+  }
+  .footer-icon.is-active {
+    color: var(--green-bright);
+    background: var(--bg-elevated);
+    border-color: var(--hairline);
+  }
+
+  .footer-icon svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .footer-icon-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
 </style>

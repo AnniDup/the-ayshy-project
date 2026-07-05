@@ -1,56 +1,108 @@
 ---
-// src/pages/index.astro — garden overview, not a duplicate of /workshop
 import { getCollection } from 'astro:content';
 import ProjectCard from '@components/ProjectCard.astro';
 import Layout from '@layouts/Layout.astro';
 import { projectLink } from '@lib/utils';
+import { DOMAINS } from '@lib/taxonomy';
 
 const allProjects = await getCollection('projects');
-const active = allProjects.filter(p => p.data.status !== 'idea');
 
-// "Recent" — sorted by date where present, most recent first, capped to a handful
-const recent = [...active]
+const recent = [...allProjects]
   .sort((a, b) => (b.data.date?.getTime() ?? 0) - (a.data.date?.getTime() ?? 0))
-  .slice(0, 4);
+  .slice(0, 3);
 
-const domainCount = new Set(allProjects.map(p => p.id.split('/')[0])).size;
+// Build domain stat objects — only domains with projects
+const domainStats = DOMAINS
+  .map(d => {
+    const projects = allProjects.filter(p => (p.data.domains || []).includes(d.slug));
+    if (projects.length === 0) return null;
+    return {
+      slug: d.slug,
+      label: d.label,
+      total: projects.length,
+      active:  projects.filter(p => p.data.status === 'active').length,
+      resting: projects.filter(p => p.data.status === 'resting').length,
+      shelved: projects.filter(p => p.data.status === 'shelved').length,
+      idea:    projects.filter(p => p.data.status === 'idea').length,
+      // Most recently touched project name for flavour
+      latest: [...projects].sort((a,b) => (b.data.date?.getTime() ?? 0) - (a.data.date?.getTime() ?? 0))[0]?.data.title ?? null,
+    };
+  })
+  .filter((d): d is NonNullable<typeof d> => d !== null);
 ---
 
-<Layout title="Landing" description="The AyShy Project — a digital garden of projects, notes, and experiments.">
+<Layout title="Landing" description="The AyShy Project">
+
   <header class="hero">
-    <p class="eyebrow">// digital garden</p>
     <h1 class="hero-title">The AyShy Project</h1>
-    <p class="hero-sub">
-      A growing collection of builds, worlds, and half-finished ideas —
-      tracked across {domainCount} domains, {active.length} active or completed, and
-      whatever's still incubating.
-    </p>
+    <p class="hero-sub">A growing collection of projects and half-finished ideas to keep the boredom at bay.</p>
   </header>
 
-  <nav class="entry-points">
-    <a href="/workshop" class="entry-card">
-      <span class="entry-label">Workshop</span>
-      <span class="entry-desc">The full project board — in progress, completed, filterable.</span>
+  <!-- Two main entry points -->
+  <div class="entry-row">
+    <a href="/workshop" class="entry-card entry-primary">
+      <div class="entry-inner">
+        <span class="entry-eyebrow">// explore</span>
+        <span class="entry-label">Workshop</span>
+        <span class="entry-desc">All active projects, builds, and experiments — browse by domain, status, or tag.</span>
+      </div>
+      <span class="entry-arrow">→</span>
     </a>
-    <a href="/incubation" class="entry-card">
-      <span class="entry-label">Incubation</span>
-      <span class="entry-desc">Raw ideas not yet promoted to active work.</span>
+    <a href="/notebook" class="entry-card entry-secondary">
+      <div class="entry-inner">
+        <span class="entry-eyebrow">// read</span>
+        <span class="entry-label">Notebook</span>
+        <span class="entry-desc">Loose notes and thoughts not tied to any single project.</span>
+      </div>
+      <span class="entry-arrow">→</span>
     </a>
-    <a href="/notebook" class="entry-card">
-      <span class="entry-label">Notebook</span>
-      <span class="entry-desc">Loose notes, not tied to a single project.</span>
-    </a>
-    <a href="/vault" class="entry-card">
-      <span class="entry-label">Vault</span>
-      <span class="entry-desc">Interactive tools, when they exist.</span>
-    </a>
-  </nav>
+  </div>
 
+  <!-- Domain cards — the main feature of the landing -->
+  <section class="domains-section">
+    <p class="section-label">// domains</p>
+    <div class="domain-grid">
+      {domainStats.map(d => (
+        <a href={`/workshop/${d.slug}`} class="domain-card">
+
+          <div class="domain-card-header">
+            <span class="domain-card-label">{d.label}</span>
+            <span class="domain-card-total">{d.total} {d.total === 1 ? 'project' : 'projects'}</span>
+          </div>
+
+          <div class="domain-stat-bar">
+            {d.active  > 0 && <span class="bar-seg bar-active"  style={`flex:${d.active}`}  title={`${d.active} active`}></span>}
+            {d.resting > 0 && <span class="bar-seg bar-resting" style={`flex:${d.resting}`} title={`${d.resting} resting`}></span>}
+            {d.shelved > 0 && <span class="bar-seg bar-shelved" style={`flex:${d.shelved}`} title={`${d.shelved} shelved`}></span>}
+            {d.idea    > 0 && <span class="bar-seg bar-idea"    style={`flex:${d.idea}`}    title={`${d.idea} ideas`}></span>}
+          </div>
+
+          <div class="domain-stats">
+            {d.active  > 0 && <div class="stat-row"><span class="stat-dot dot-active"></span><span class="stat-label">Active</span><span class="stat-val">{d.active}</span></div>}
+            {d.resting > 0 && <div class="stat-row"><span class="stat-dot dot-resting"></span><span class="stat-label">Resting</span><span class="stat-val">{d.resting}</span></div>}
+            {d.shelved > 0 && <div class="stat-row"><span class="stat-dot dot-shelved"></span><span class="stat-label">Shelved</span><span class="stat-val">{d.shelved}</span></div>}
+            {d.idea    > 0 && <div class="stat-row"><span class="stat-dot dot-idea"></span><span class="stat-label">Ideas</span><span class="stat-val">{d.idea}</span></div>}
+          </div>
+
+          {d.latest && (
+            <div class="domain-card-footer">
+              <span class="footer-label">latest</span>
+              <span class="footer-value">{d.latest}</span>
+            </div>
+          )}
+
+          <span class="domain-card-arrow">→</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- Recently updated -->
   {recent.length > 0 && (
-    <section>
-      <div class="section-header">Recently Touched<span class="section-rule"></span></div>
+    <section class="recent-section">
+      <p class="section-label">// recently updated</p>
       <div class="grid">
-        {recent.map((project, i) => (
+        {recent.map(project => (
           <ProjectCard
             title={project.data.title}
             description={project.data.description}
@@ -58,70 +110,192 @@ const domainCount = new Set(allProjects.map(p => p.id.split('/')[0])).size;
             image={project.data.image}
             tags={project.data.tags || []}
             status={project.data.status}
-            featured={i === 0}
+            domains={project.data.domains || []}
           />
         ))}
       </div>
     </section>
   )}
+
 </Layout>
 
 <style>
-  .hero { margin-bottom: 2.5rem; max-width: 640px; }
-  .eyebrow {
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    color: var(--green-bright);
-    margin: 0 0 0.5rem 0;
-  }
-  .hero-title { font-size: 2.1rem; margin: 0 0 0.75rem 0; }
-  .hero-sub { color: var(--text-muted); margin: 0; }
+  /* Hero */
+  .hero { margin-bottom: 2rem; }
+  .hero-title { font-family: var(--font-display); font-size: 2rem; font-weight: 700; margin: 0 0 0.4rem 0; color: var(--bone); }
+  .hero-sub { color: var(--text-muted); font-size: 0.95rem; margin: 0; }
 
-  .entry-points {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1rem;
-    margin-bottom: 3rem;
-  }
+  /* Entry row */
+  .entry-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2.5rem; }
   .entry-card {
     display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    padding: 1.1rem 1.2rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 1.75rem;
     background: var(--bg-surface);
     border: 1px solid var(--hairline);
     border-radius: 4px;
     text-decoration: none;
     color: var(--bone);
-    transition: border-color 0.15s ease;
+    transition: border-color 0.15s ease, transform 0.15s ease;
   }
-  .entry-card:hover { border-color: var(--green-mid); opacity: 1; }
-  .entry-label {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 0.95rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--green-bright);
-  }
-  .entry-desc { font-size: 0.82rem; color: var(--text-muted); }
+  .entry-card:hover { transform: translateY(-2px); opacity: 1; }
+  .entry-primary:hover { border-color: var(--green-bright); }
+  .entry-secondary:hover { border-color: var(--text-faint); }
+  .entry-inner { display: flex; flex-direction: column; gap: 0.3rem; }
+  .entry-eyebrow { font-family: var(--font-mono); font-size: 0.7rem; color: var(--green-bright); letter-spacing: 0.05em; }
+  .entry-secondary .entry-eyebrow { color: var(--text-faint); }
+  .entry-label { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--bone); }
+  .entry-desc { font-size: 0.8rem; color: var(--text-muted); max-width: 28ch; line-height: 1.5; }
+  .entry-arrow { font-size: 1.5rem; color: var(--green-bright); opacity: 0.4; transition: opacity 0.15s, transform 0.15s; }
+  .entry-card:hover .entry-arrow { opacity: 1; transform: translateX(4px); }
+  .entry-secondary .entry-arrow { color: var(--text-faint); }
 
-  .section-header {
+  /* Section label */
+  .section-label { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-faint); letter-spacing: 0.05em; margin: 0 0 1rem 0; }
+
+  /* Domain grid — 2 columns, generous cards */
+  .domains-section { margin-bottom: 3rem; }
+  .domain-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .domain-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--bone);
+    transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+    overflow: hidden;
+  }
+  .domain-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--green-deep), transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .domain-card:hover {
+    border-color: var(--green-mid);
+    background: var(--bg-elevated);
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+  .domain-card:hover::before { opacity: 1; }
+
+  .domain-card-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .domain-card-label {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--bone);
+  }
+  .domain-card-total {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    white-space: nowrap;
+  }
+
+  /* Status bar */
+  .domain-stat-bar {
+    display: flex;
+    height: 4px;
+    border-radius: 2px;
+    overflow: hidden;
+    gap: 2px;
+  }
+  .bar-seg { border-radius: 2px; min-width: 4px; }
+  .bar-active  { background: var(--reserved-sky); }
+  .bar-resting { background: var(--gold); }
+  .bar-shelved { background: var(--reserved-red); }
+  .bar-idea    { background: var(--text-faint); }
+
+  /* Stat rows */
+  .domain-stats { display: flex; flex-direction: column; gap: 0.4rem; }
+  .stat-row {
     display: flex;
     align-items: center;
-    gap: 0.7rem;
-    margin: 0 0 1.1rem 0;
-    font-family: var(--font-display);
-    font-size: 0.95rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
+    gap: 0.5rem;
+  }
+  .stat-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-active  { background: var(--reserved-sky); box-shadow: 0 0 6px rgba(79,163,168,0.6); }
+  .dot-resting { background: var(--gold); }
+  .dot-shelved { background: var(--reserved-red); }
+  .dot-idea    { background: var(--text-faint); }
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-muted);
     text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex: 1;
   }
-  .section-rule { flex: 1; height: 1px; background: var(--hairline); }
+  .stat-val {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--bone);
+  }
 
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1.1rem;
+  /* Footer — latest project */
+  .domain-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--hairline);
   }
+  .footer-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+  .footer-value {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Arrow */
+  .domain-card-arrow {
+    position: absolute;
+    bottom: 1.25rem;
+    right: 1.5rem;
+    font-size: 1rem;
+    color: var(--green-mid);
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .domain-card:hover .domain-card-arrow { opacity: 1; transform: translateX(4px); }
+
+  /* Recently updated */
+  .recent-section { }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
 </style>
